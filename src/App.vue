@@ -50,9 +50,9 @@
       color="orange"
       class="white--text"
     >
-      <span>Vuetify</span>
       <v-spacer />
       <span>&copy; 2019</span>
+      <v-spacer />
     </v-footer>
   </v-app>
 </template>

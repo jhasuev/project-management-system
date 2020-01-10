@@ -56,6 +56,7 @@
 <script>
 import {eventEmitter} from '../../main'
 export default {
+  props: ['no_change_title'],
   data () {
     return {
       login: '',
@@ -84,7 +85,9 @@ export default {
   computed : {
   },
   created(){
-    eventEmitter.$emit("change_title", 'Войти');
+    if (!this.no_change_title) {
+      eventEmitter.$emit("change_title", 'Войти');
+    }
   }
 }
 </script>

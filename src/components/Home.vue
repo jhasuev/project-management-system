@@ -1,8 +1,15 @@
 <template>
-  <h1>Home</h1>
+  <div>
+    <Login :no_change_title="true"/>
+    <div class="text-center">
+      Нет аккаунта? <br/>
+      <router-link :to="'/register'">Зарегистрируйтесь!</router-link>
+    </div>
+  </div>
 </template>
 
 <script>
+  import Login from './Auth/Login.vue'
   import {eventEmitter} from '../main'
   export default {
    created(){
@@ -12,6 +19,9 @@
     } else {
       eventEmitter.$emit("change_title", 'Главная');
     }
+   },
+   components: {
+    Login,
    }
   }
 </script>
