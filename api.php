@@ -77,19 +77,31 @@ switch ($_GET['cmd']) {
 		break;
 
 	case 'checkAuth':
+		// проверка, сохранен ли ID'шник в сессии. грубо говоря, проверяет, авторизован пользователь или нет
 		if (isset($_SESSION['userID'])) {
 			echo json_encode(array('status' => 'success'));
 		}
 
 		break;
 	case 'logout':
+		// выход из страницы пользователя
 		unset($_SESSION['userID']);
 		echo json_encode(array('status' => 'success'));
 
 		break;
 	case 'login':
-		unset($_SESSION['userID']);
-		echo json_encode(array('status' => 'success'));
+		// авторизация / логин
+		$login = trim($data['login']);
+		$password = md5(trim($data['password']));
+
+		$Auth = new Auth();
+		if ($userID = $Auth->checkUser($login, $password)) {
+			// сохраняем пользователя как авторизованного
+			$_SESSION['userID'] = $userID;
+			echo json_encode(array('status' => 'success'));
+		} else {
+			echo json_encode(array('status' => 'fail', 'messages' => array('Пароль и/или логин введен неверно')));
+		}
 
 		break;
 	

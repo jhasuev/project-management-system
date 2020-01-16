@@ -36,6 +36,9 @@
                 :rules="passwordRules"
                 v-model="password"
               ></v-text-field>
+              <div class="message" v-if="messages.length">
+                <div class="message__item" v-for="(msg, i) in messages" :key="i">{{msg}}</div>
+              </div>
             </v-form>
           </v-card-text>
           <v-card-actions>
@@ -56,11 +59,12 @@
 
 <script>
 import {eventEmitter} from '../../main'
+import {SERVER_API} from '../../main'
+import axios from 'axios'
 export default {
   props: ['no_change_title'],
   data () {
     return {
-      loading : false,
       login: '',
       password: '',
       // valid: false,
@@ -72,6 +76,9 @@ export default {
         v => !!v || 'Пароль не может быть пустым!',
         v => v.length >= 6 || 'Пароль должен быть не меньше 6 символов!',
       ],
+
+      loading : false,
+      messages: [],
     }
   },
   methods : {
@@ -91,8 +98,7 @@ export default {
             this.messages = [];
             if (response.data.status == 'success') {
               // успешно
-              this.$router.push('/');
-
+              this.$router.push('/dashboard');
             } else if (response.data.status == 'fail') {
               // ошибка
               this.messages = response.data.messages;
@@ -120,7 +126,18 @@ export default {
 </script>
 
 <style>
-  .container.fill-height > .row {
+  /*.container.fill-height > .row {
     max-width: none;
+  }*/
+  .message {
+    padding-left: 35px;
+  }
+  .message__item {
+    color: #f33;
+    display: flex;
+  }
+  .message__item:before {
+    content: "–";
+    margin-right: 5px;
   }
 </style>

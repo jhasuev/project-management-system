@@ -60,11 +60,12 @@ class Auth {
 	public function checkUser($login, $password){
 		// $password = md5($password);
 
-		$sql = "SELECT `id` FROM `users` WHERE `login` = '{$login}', `password` = '{$password}'";
+		$sql = "SELECT `id` FROM `users` WHERE `login` = '{$login}' AND `password` = '{$password}'";
+		// echo $sql;
 		$result = $GLOBALS['db']->mysqli->query($sql);
 		if ($result->num_rows === 0) {
 			return false;
 		}
-		return true;
+		return $result->fetch_assoc()['id'];
 	}
 }
