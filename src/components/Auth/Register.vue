@@ -29,6 +29,14 @@
               ></v-text-field>
 
               <v-text-field
+                prepend-icon="mdi-account"
+                name="fullName"
+                label="Имя и фамилия"
+                :rules="fullNameRules"
+                v-model="fullName"
+              ></v-text-field>
+
+              <v-text-field
                 prepend-icon="mdi-email"
                 name="email"
                 label="E-mail адрес"
@@ -53,6 +61,10 @@
                 :rules="passwordConfirmRules"
                 v-model="passwordConfirm"
               ></v-text-field>
+
+              <div class="message" v-if="messages.length">
+                <div class="message__item" v-for="(msg, i) in messages" :key="i">{{msg}}</div>
+              </div>
             </v-form>
           </v-card-text>
           <v-card-actions>
@@ -62,6 +74,7 @@
               color="orange"
               @click="onSubmit"
               :disabled="!valid()"
+              :loading="loading"
             >Зарегистрироваться</v-btn>
           </v-card-actions>
         </v-card>
@@ -72,16 +85,25 @@
 
 <script>
 import {eventEmitter} from '../../main'
+import {SERVER_API} from '../../main'
+import axios from 'axios'
 export default {
   data () {
     return {
+      loading : false,
       login: '',
+      fullName: '',
       email: '',
       password: '',
       passwordConfirm: '',
+      messages: [],
       // valid: false,
       loginRules : [
         v => !!v || 'Логин не может быть пустым!',
+        v => v.length >= 4 || 'Логин должен быть не меньше 4 символов!',
+      ],
+      fullNameRules : [
+        v => !!v || 'Поле не может быть пустым!',
       ],
       emailRules : [
         v => !!v || 'E-mail не может быть пустым!',
@@ -102,7 +124,36 @@ export default {
     onSubmit () {
       // if (this.$refs.form.validate()) {
       if (this.valid()) {
-        alert(1)
+        this.loading = true;
+        axios.defaults.withCredentials = true;
+        axios
+          .get(SERVER_API + '?cmd=register&data=' + JSON.stringify({
+            'login' : this.login.trim(),
+            'fullName' : this.fullName.trim(),
+            'email' : this.email.trim(),
+            'password' : this.password.trim(),
+          }))
+          .then(response => {
+            // eslint-disable-next-line
+            console.log(response.data);
+            this.messages = [];
+            if (response.data.status == 'success') {
+              // успешно
+              // this.$store.commit('setLogin', this.login.trim());
+              // this.$store.commit('setFullName', this.fullName.trim());
+              // this.$store.commit('setEmail', this.email.trim());
+              this.$router.push('/');
+
+            } else if (response.data.status == 'fail') {
+              // ошибка
+              this.messages = response.data.messages;
+            }
+          })
+          .catch(error => {
+            // eslint-disable-next-line
+            console.log(error);
+          })
+          .finally(() => (this.loading = false));
       }
     },
     valid () {
@@ -114,12 +165,25 @@ export default {
   },
   created(){
     eventEmitter.$emit("change_title", 'Регистрация');
+    
+    // SERVER_API;
   }
 }
 </script>
 
 <style>
-  .container.fill-height > .row {
+  /*.container.fill-height > .row {
     max-width: none;
+  }*/
+  .message {
+    padding-left: 35px;
+  }
+  .message__item {
+    color: #f33;
+    display: flex;
+  }
+  .message__item:before {
+    content: "–";
+    margin-right: 5px;
   }
 </style>

@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import Home from './components/Home'
 import Login from './components/Auth/Login'
 import Register from './components/Auth/Register'
+import Profile from './components/User/Profile'
 
 import Dashboard from './components/Dashboard/Dashboard'
 import Board from './components/Dashboard/Board'
@@ -23,6 +24,10 @@ export default new VueRouter({
 		{
 			path : '/register',
 			component : Register,
+		},
+		{
+			path : '/profile',
+			component : Profile,
 		},
 		{
 			path : '/dashboard',

@@ -45,6 +45,7 @@
               color="orange"
               @click="onSubmit"
               :disabled="!valid()"
+              :loading="loading"
             >Войти</v-btn>
           </v-card-actions>
         </v-card>
@@ -59,14 +60,17 @@ export default {
   props: ['no_change_title'],
   data () {
     return {
+      loading : false,
       login: '',
       password: '',
       // valid: false,
       loginRules : [
-        v => !!v || 'Введите логин',
+        v => !!v || 'Логин не может быть пустым!',
+        v => v.length >= 4 || 'Логин должен быть не меньше 4 символов!',
       ],
       passwordRules : [
-        v => !!v || 'Введите пароль',
+        v => !!v || 'Пароль не может быть пустым!',
+        v => v.length >= 6 || 'Пароль должен быть не меньше 6 символов!',
       ],
     }
   },
@@ -74,7 +78,31 @@ export default {
     onSubmit () {
       // if (this.$refs.form.validate()) {
       if (this.valid()) {
-        alert(1)
+        this.loading = true;
+        axios.defaults.withCredentials = true;
+        axios
+          .get(SERVER_API + '?cmd=login&data=' + JSON.stringify({
+            'login' : this.login.trim(),
+            'password' : this.password.trim(),
+          }))
+          .then(response => {
+            // eslint-disable-next-line
+            console.log(response.data);
+            this.messages = [];
+            if (response.data.status == 'success') {
+              // успешно
+              this.$router.push('/');
+
+            } else if (response.data.status == 'fail') {
+              // ошибка
+              this.messages = response.data.messages;
+            }
+          })
+          .catch(error => {
+            // eslint-disable-next-line
+            console.log(error);
+          })
+          .finally(() => (this.loading = false));
       }
     },
     valid () {
@@ -82,8 +110,7 @@ export default {
         return this.$refs.form.validate()
     }
   },
-  computed : {
-  },
+  computed : {},
   created(){
     if (!this.no_change_title) {
       eventEmitter.$emit("change_title", 'Войти');

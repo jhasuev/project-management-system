@@ -88,6 +88,11 @@
           'icon'  : 'mdi-account-multiple-plus',
           'title' : 'Регистрация'
         },
+        {
+          'url'   : '/profile',
+          'icon'  : 'mdi-account',
+          'title' : 'Профиль'
+        },
       ],
     }),
     created(){

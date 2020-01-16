@@ -1,27 +1,37 @@
 <template>
-  <div>
-    <Login :no_change_title="true"/>
-    <div class="text-center">
-      Нет аккаунта? <br/>
-      <router-link :to="'/register'">Зарегистрируйтесь!</router-link>
-    </div>
-  </div>
+  <div></div>
 </template>
 
 <script>
-  import Login from './Auth/Login.vue'
-  import {eventEmitter} from '../main'
+  // import Login from './Auth/Login.vue'
+  // import {eventEmitter} from '../main'
+  import {SERVER_API} from '../main'
+  import axios from 'axios'
   export default {
-   created(){
-    if (!this.$router) {
-      // this.$router.push('dashboard');
-      this.$router.push('login');
-    } else {
-      eventEmitter.$emit("change_title", 'Главная');
+    created(){
+      axios.defaults.withCredentials = true;
+      axios
+        .get(SERVER_API + '?cmd=checkAuth')
+        .then(response => {
+          // eslint-disable-next-line
+          // console.log(this.$router.currentRoute.path);
+          if(this.$router.currentRoute.path == '/') {
+            if(response.data.status == 'success') {
+              this.$router.push('/dashboard');
+            } else {
+              this.$router.push('/login');
+            }
+          }
+        })
+        .catch(error => {
+          // eslint-disable-next-line
+          console.log(error);
+        })
+        // .finally(() => (this.loading = false));
+      // eventEmitter.$emit("change_title", 'Главная');
+    },
+    components: {
+    // Login,
     }
-   },
-   components: {
-    Login,
-   }
   }
 </script>
