@@ -60,7 +60,7 @@
           let colorIndex = this.colors.indexOf(this.color_active);
               colorIndex = (colorIndex == -1)? '' : colorIndex;
           // eslint-disable-next-line
-          console.log(colorIndex);
+          // console.log(colorIndex);
 
           axios.defaults.withCredentials = true;
           axios
@@ -74,6 +74,7 @@
               console.log(response.data);
               if (response.data.status == 'success') {
                 // успешно
+                this.$emit('boardListUpdate');
               } else if (response.data.status == 'fail') {
                 // ошибка
               }

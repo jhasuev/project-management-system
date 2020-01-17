@@ -19,7 +19,7 @@
         lg="3"
         xl="2"
       >
-        <board-create :colors="colors"></board-create>
+        <board-create :colors="colors" @boardListUpdate="showBoardList()"></board-create>
       </v-col>
 
       <v-col
@@ -32,11 +32,11 @@
         v-for="(board,i) in boards"
         :key="i"
       >
-        <div class="board  elevation-12" :style="{'background-color' : board.color.bgcolor, 'color' : board.color.textcolor }">
-          <div class="board___type">{{(board.private)?'Приватный':'Публичный'}}</div>
+        <div class="board  elevation-12" :style="{'background-color' : colors[board.color].bgcolor, 'color' : colors[board.color].textcolor }">
+          <div class="board___type">{{(board.is_private == 1)?'Приватный':'Публичный'}}</div>
           <h2 class="board___title">{{board.title}}</h2>
           <div class="d-flex  align-center  mt-auto">
-            <span class="board___date">{{getStringifyDate(board.created_time)}}</span>
+            <span class="board___date">{{getStringifyDate(board.created_time * 1000)}}</span>
             <v-spacer></v-spacer>
             <v-btn text :to="'dashboard/b/' + board.id">Перейти</v-btn>
           </div>
@@ -49,6 +49,8 @@
 <script>
 
 import BoardCreate from './BoardCreate.vue'
+import {SERVER_API} from '../../main'
+import axios from 'axios'
 
 export default {
   data () {
@@ -87,88 +89,7 @@ export default {
             'textcolor' : '#000',
           },
         ],
-      boards : [
-        {
-          id : 1,
-          title : 'Моя доска #1',
-          color : {
-            'bgcolor' : 'orange',
-            'textcolor' : '#000',
-          },
-          private : true,
-          created_time : 1576578897117
-        },
-        {
-          id : 2,
-          title : 'Моя доска #2',
-          color : {
-            'bgcolor' : 'red',
-            'textcolor' : '#fff',
-          },
-          private : true,
-          created_time : 1576578817117
-        },
-        {
-          id : 3,
-          title : 'Моя доска #3',
-          color : {
-            'bgcolor' : 'pink',
-            'textcolor' : '#000',
-          },
-          private : false,
-          created_time : 1576578897117
-        },
-        {
-          id : 4,
-          title : 'Моя доска #4',
-          color : {
-            'bgcolor' : 'purple',
-            'textcolor' : '#fff',
-          },
-          private : true,
-          created_time : 1576578897117
-        },
-        {
-          id : 5,
-          title : 'Моя доска #5',
-          color : {
-            'bgcolor' : 'cyan',
-            'textcolor' : '#000',
-          },
-          private : true,
-          created_time : 1576518894117
-        },
-        {
-          id : 6,
-          title : 'Моя доска #6',
-          color : {
-            'bgcolor' : 'teal',
-            'textcolor' : '#000',
-          },
-          private : true,
-          created_time : 1576578897117
-        },
-        {
-          id : 7,
-          title : 'Моя доска #7',
-          color : {
-            'bgcolor' : 'lime',
-            'textcolor' : '#000',
-          },
-          private : false,
-          created_time : 1571573897117
-        },
-        {
-          id : 8,
-          title : 'Моя доска #8',
-          color : {
-            'bgcolor' : 'lime',
-            'textcolor' : '#000',
-          },
-          private : false,
-          created_time : 1571573897117
-        },
-      ],
+      boards : [],
     }
   },
   methods : {
@@ -192,10 +113,35 @@ export default {
       str = str.replace('mins', mins);
 
       return str;
-    }
+    },
+    showBoardList(){
+      axios.defaults.withCredentials = true;
+      axios
+        .get(SERVER_API + '?cmd=getBoardList')
+        .then(response => {
+          // eslint-disable-next-line
+          // console.log(response.data);
+          if (response.data.status == 'success') {
+            // успешно
+            this.boards = response.data.boards;
+          } else if (response.data.status == 'fail') {
+            // ошибка
+            // eslint-disable-next-line
+            console.log(response);
+          }
+        })
+        .catch(error => {
+          // eslint-disable-next-line
+          console.log(error);
+        })
+        .finally(() => (this.loading = false));
+    },
+  },
+  created(){
+    this.showBoardList();
   },
   components: {
-    BoardCreate
+    BoardCreate,
   }
 }
 </script>
@@ -223,6 +169,8 @@ export default {
   line-height: 1;
   font-weight: 400;
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .board___date {
   font-size: 10px;

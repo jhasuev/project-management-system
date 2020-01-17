@@ -6,6 +6,7 @@ session_start();
 require_once "configs.php";
 require_once "classes/DB.php";
 require_once "classes/Auth.php";
+require_once "classes/Board.php";
 $db = new DB();
 
 error_reporting(E_ALL);
@@ -75,7 +76,6 @@ switch ($_GET['cmd']) {
 		}
 
 		break;
-
 	case 'checkAuth':
 		// проверка, сохранен ли ID'шник в сессии. грубо говоря, проверяет, авторизован пользователь или нет
 		if (isset($_SESSION['userID'])) {
@@ -117,10 +117,38 @@ switch ($_GET['cmd']) {
 		break;
 	case 'createBoard':
 		// возвращаем данные по профилю
+		// debug($_SESSION);
+		if (isset($_SESSION['userID'])) {
+			$title = trim($data['title']);
+			$color = trim($data['color']);
+			$is_private = trim($data['is_private']);
+
+			if ($title) {
+				$Board = new Board();
+				$BoardID = $Board->create(array(
+					'userID' => $_SESSION['userID'],
+					'title' => addslashes($title),
+					'color' => $color,
+					'is_private' => !!$is_private,
+					'created_time' => time(),
+				));
+				echo json_encode(array('status' => 'success', 'BoardID' => $BoardID));
+			} else {
+				echo json_encode(array('status' => 'fail'));
+			}
+			
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+
+	case 'getBoardList':
+		// возвращаем данные по профилю
 		if ($_SESSION['userID']) {
 			$Board = new Board();
-			// $data = $Board->create();
-			echo json_encode(array('status' => 'success', 'user' => $data));
+			$boards = $Board->getBoardsList($_SESSION['userID'], array('id', 'title', 'is_private', 'color', 'created_time'));
+			echo json_encode(array('status' => 'success', 'boards' => $boards));
 		} else {
 			echo json_encode(array('status' => 'fail'));
 		}
