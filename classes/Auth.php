@@ -68,4 +68,16 @@ class Auth {
 		}
 		return $result->fetch_assoc()['id'];
 	}
+
+	public function getProfileData($userID, $fields){
+		$fields = "`" . implode($fields, "`,`") . "`";
+
+		$sql = "SELECT {$fields} FROM `users` WHERE `id` = {$userID}";
+		// echo $sql;
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+		return $result->fetch_assoc();
+	}
 }

@@ -6,6 +6,8 @@
       <v-text-field
         label="Название доски"
         hide-details
+        v-model="title"
+        :disabled="loading"
       ></v-text-field>
       <v-checkbox
         v-model="is_private"
@@ -18,7 +20,7 @@
         <div class="colors__item"
              v-for="(color,i) in colors"
              :key="i"
-             :style="{'background-color': color}"
+             :style="{'background-color': color.bgcolor}"
              :class="{'colors__item--active': color === color_active}"
              @click="setColor(color)"
              ></div>
@@ -26,32 +28,64 @@
     </div>
     <div class="d-flex  mt-auto">
       <v-spacer></v-spacer>
-      <v-btn text :loading="!true" class="elevation-1">Создать доску</v-btn>
+      <v-btn text :loading="loading" class="elevation-1" @click="create()">Создать доску</v-btn>
     </div>
   </div>
 </template>
 <script>
+  // import {eventEmitter} from '../../main'
+  import {SERVER_API} from '../../main'
+  import axios from 'axios'
   export default {
+    props: ['colors'],
     data () {
       return {
+        loading : false,
+        title: '',
         is_private: true,
-        colors: [
-          'white',
-          'orange',
-          'red',
-          'pink',
-          'purple',
-          'cyan',
-          'teal',
-          'lime',
-        ],
-        color_active : 'white'
+        color_active : {
+          'bgcolor' : 'white',
+          'textcolor' : '#000',
+        }
       }
     },
     methods : {
       setColor(color){
         this.color_active = color
-      }
+      },
+
+      create(){
+        if (this.title && this.title.trim()) {
+          this.loading = true;
+          let colorIndex = this.colors.indexOf(this.color_active);
+              colorIndex = (colorIndex == -1)? '' : colorIndex;
+          // eslint-disable-next-line
+          console.log(colorIndex);
+
+          axios.defaults.withCredentials = true;
+          axios
+            .get(SERVER_API + '?cmd=createBoard&data=' + JSON.stringify({
+              'title' : this.title.trim(),
+              'color' : colorIndex,
+              'is_private' : this.is_private,
+            }))
+            .then(response => {
+              // eslint-disable-next-line
+              console.log(response.data);
+              if (response.data.status == 'success') {
+                // успешно
+              } else if (response.data.status == 'fail') {
+                // ошибка
+              }
+            })
+            .catch(error => {
+              // eslint-disable-next-line
+              console.log(error);
+            })
+            .finally(() => (this.loading = false));
+
+        }
+      },
     }
   }
 </script>

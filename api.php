@@ -104,6 +104,28 @@ switch ($_GET['cmd']) {
 		}
 
 		break;
+	case 'getProfileData':
+		// возвращаем данные по профилю
+		if ($_SESSION['userID']) {
+			$Auth = new Auth();
+			$data = $Auth->getProfileData($_SESSION['userID'], array('login', 'fullName', 'email'));
+			echo json_encode(array('status' => 'success', 'user' => $data));
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+	case 'createBoard':
+		// возвращаем данные по профилю
+		if ($_SESSION['userID']) {
+			$Board = new Board();
+			// $data = $Board->create();
+			echo json_encode(array('status' => 'success', 'user' => $data));
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
 	
 	default:
 		# code...

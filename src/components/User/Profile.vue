@@ -9,7 +9,7 @@
         md="5"
         lg="4"
       >
-        <v-card class="elevation-1">
+        <v-card class="elevation-1" :loading="loading">
           <v-toolbar
             color="orange"
             dark
@@ -24,24 +24,23 @@
                 <tr>
                   <td>Логин</td>
                   <td>
-                    {{getUser.login}}
+                    {{login}}
                   </td>
                 </tr>
                 <tr>
                   <td>Имя и фамилия</td>
                   <td>
-                    {{getUser.fullName}}
+                    {{fullName}}
                   </td>
                 </tr>
                 <tr>
                   <td>E-mail адрес</td>
                   <td>
-                    {{getUser.email}}
+                    {{email}}
                   </td>
                 </tr>
               </tbody>
             </v-simple-table>
-            <pre>{{getUser}}</pre>
             <div class="text-center pt-2">
               <!-- <router-link :to="'/logout'">Выйти из аккаунта</router-link> -->
               <a @click="logout()">Выйти из аккаунта</a>
@@ -59,12 +58,18 @@ import {SERVER_API} from '../../main'
 import axios from 'axios'
 export default {
   data () {
-    return {}
+    return {
+      loading : false,
+      login : '',
+      fullName : '',
+      email : '',
+    }
   },
   methods : {
     logout(){
       // eslint-disable-next-line
       // console.log(111);
+      this.loading = true;
       axios.defaults.withCredentials = true;
       axios
         .get(SERVER_API + '?cmd=logout')
@@ -87,13 +92,36 @@ export default {
     }
   },
   computed : {
-    getUser(){
-      // this.$store.commit('loginEdit', 'new_login');
-      return this.$store.getters.user;
-    },
+    
   },
   created(){
     eventEmitter.$emit("change_title", 'Профиль');
+    
+    this.loading = true;
+    axios.defaults.withCredentials = true;
+    axios
+      .get(SERVER_API + '?cmd=getProfileData')
+      .then(response => {
+        // eslint-disable-next-line
+        // console.log(response.data);
+        if (response.data.status == 'success') {
+          // успешно
+          // this.$router.push('/login');
+          // eslint-disable-next-line
+
+          this.login = response.data.user.login;
+          this.fullName = response.data.user.fullName;
+          this.email = response.data.user.email;
+        } else {
+          // eslint-disable-next-line
+          console.log(response);
+        }
+      })
+      .catch(error => {
+        // eslint-disable-next-line
+        console.log(error);
+      })
+      .finally(() => (this.loading = false));
   }
 }
 </script>

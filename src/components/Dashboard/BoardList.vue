@@ -19,7 +19,7 @@
         lg="3"
         xl="2"
       >
-        <board-create></board-create>
+        <board-create :colors="colors"></board-create>
       </v-col>
 
       <v-col
@@ -32,7 +32,7 @@
         v-for="(board,i) in boards"
         :key="i"
       >
-        <div class="board  elevation-12" :style="{'background-color' : board.color}">
+        <div class="board  elevation-12" :style="{'background-color' : board.color.bgcolor, 'color' : board.color.textcolor }">
           <div class="board___type">{{(board.private)?'Приватный':'Публичный'}}</div>
           <h2 class="board___title">{{board.title}}</h2>
           <div class="d-flex  align-center  mt-auto">
@@ -53,53 +53,118 @@ import BoardCreate from './BoardCreate.vue'
 export default {
   data () {
     return {
+      colors: [
+          {
+            'bgcolor' : 'white',
+            'textcolor' : '#000',
+          },
+          {
+            'bgcolor' : 'orange',
+            'textcolor' : '#000',
+          },
+          {
+            'bgcolor' : 'red',
+            'textcolor' : '#fff',
+          },
+          {
+            'bgcolor' : 'pink',
+            'textcolor' : '#000',
+          },
+          {
+            'bgcolor' : 'purple',
+            'textcolor' : '#fff',
+          },
+          {
+            'bgcolor' : 'cyan',
+            'textcolor' : '#000',
+          },
+          {
+            'bgcolor' : 'teal',
+            'textcolor' : '#000',
+          },
+          {
+            'bgcolor' : 'lime',
+            'textcolor' : '#000',
+          },
+        ],
       boards : [
         {
           id : 1,
           title : 'Моя доска #1',
-          color : 'orange',
+          color : {
+            'bgcolor' : 'orange',
+            'textcolor' : '#000',
+          },
           private : true,
           created_time : 1576578897117
         },
         {
           id : 2,
           title : 'Моя доска #2',
-          color : 'red',
+          color : {
+            'bgcolor' : 'red',
+            'textcolor' : '#fff',
+          },
           private : true,
           created_time : 1576578817117
         },
         {
           id : 3,
           title : 'Моя доска #3',
-          color : 'pink',
+          color : {
+            'bgcolor' : 'pink',
+            'textcolor' : '#000',
+          },
           private : false,
           created_time : 1576578897117
         },
         {
           id : 4,
           title : 'Моя доска #4',
-          color : 'purple',
+          color : {
+            'bgcolor' : 'purple',
+            'textcolor' : '#fff',
+          },
           private : true,
           created_time : 1576578897117
         },
         {
           id : 5,
           title : 'Моя доска #5',
-          color : 'cyan',
+          color : {
+            'bgcolor' : 'cyan',
+            'textcolor' : '#000',
+          },
           private : true,
           created_time : 1576518894117
         },
         {
           id : 6,
           title : 'Моя доска #6',
-          color : 'teal',
+          color : {
+            'bgcolor' : 'teal',
+            'textcolor' : '#000',
+          },
           private : true,
           created_time : 1576578897117
         },
         {
           id : 7,
           title : 'Моя доска #7',
-          color : 'lime',
+          color : {
+            'bgcolor' : 'lime',
+            'textcolor' : '#000',
+          },
+          private : false,
+          created_time : 1571573897117
+        },
+        {
+          id : 8,
+          title : 'Моя доска #8',
+          color : {
+            'bgcolor' : 'lime',
+            'textcolor' : '#000',
+          },
           private : false,
           created_time : 1571573897117
         },
@@ -152,7 +217,7 @@ export default {
 }
 .board___type {
   font-size: 12px;
-  opacity: .5;
+  /*opacity: .5;*/
 }
 .board___title {
   line-height: 1;
