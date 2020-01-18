@@ -67,4 +67,30 @@ class Board {
 		$GLOBALS['db']->mysqli->query($sql);
 		return $GLOBALS['db']->mysqli->insert_id;
 	}
+
+	public function getTasks($boardID){
+		$sql = "SELECT `id`,`cardID`,`title` FROM `boardtasks` WHERE `boardID` = {$boardID} ORDER BY `id` DESC";
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+
+		$cards = array();
+
+		while($row = $result->fetch_assoc()){
+			array_push($cards, $row);
+		}
+
+		return $cards;
+	}
+
+	public function createTask($board_data){
+		$fields = "`" . implode(array_keys($board_data), "`,`") . "`";
+		$values = "'" . implode(array_values($board_data), "','") . "'";
+
+		$sql = "INSERT INTO `boardtasks` ({$fields}) VALUES ({$values})";
+		$GLOBALS['db']->mysqli->query($sql);
+		return $GLOBALS['db']->mysqli->insert_id;
+	}
 }

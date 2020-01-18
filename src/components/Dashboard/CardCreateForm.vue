@@ -45,7 +45,8 @@
               if (response.data.status == 'success') {
                 // успешно
                 this.title = '';
-                this.$emit('cardsListUpdate');
+                this.$emit('cardsUpdate');
+                // this.$emit('cardsListUpdate');
               } else if (response.data.status == 'fail') {
                 // ошибка
               }

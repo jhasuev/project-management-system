@@ -178,7 +178,7 @@ switch ($_GET['cmd']) {
 		break;
 
 	case 'getBoardTitle':
-		// создаем карточку в доске
+		// получаем название доски
 		if (isset($_SESSION['userID'])) {
 			$boardID = $data['boardID'] * 1;
 
@@ -196,8 +196,52 @@ switch ($_GET['cmd']) {
 
 		break;
 
+	case 'createTask':
+		// создаем задачу в карточке
+		if (isset($_SESSION['userID'])) {
+			$title = trim($data['title']);
+			$boardID = $data['boardID'] * 1;
+			$cardID = $data['cardID'] * 1;
+
+			if ($title && $boardID) {
+				$Board = new Board();
+				$taskID = $Board->createTask(array(
+					'boardID' => $boardID,
+					'cardID' => $cardID,
+					'title' => addslashes($title),
+				));
+				echo json_encode(array('status' => 'success', 'taskID' => $taskID));
+			} else {
+				echo json_encode(array('status' => 'fail'));
+			}
+			
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+
+	case 'getTasks':
+		// получаем задачи
+		if (isset($_SESSION['userID'])) {
+			$boardID = $data['boardID'] * 1;
+
+			if ($boardID) {
+				$Board = new Board();
+				$tasks = $Board->getTasks($boardID);
+				echo json_encode(array('status' => 'success', 'tasks' => $tasks));
+			} else {
+				echo json_encode(array('status' => 'fail'));
+			}
+			
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+
 	case 'getCards':
-		// создаем карточку в доске
+		// получаем карты / колонки 
 		if (isset($_SESSION['userID'])) {
 			$boardID = $data['boardID'] * 1;
 

@@ -10,13 +10,13 @@
       @click.self="blurInputs()"
       v-for="(card,i) in cards" :key="i"
     >
-      <Card :card="card"/>
+      <Card :card="card" :boardID="id" :tasks="tasks"/>
     </div>
 
     <div class="cols__item  cols__item--creating"
       @click.self="blurInputs()"
     >
-      <CardCreateForm :boardID="id"/>
+      <CardCreateForm :boardID="id" @cardsUpdate="loadCards();"/>
     </div>
 
     <TaskSingleInfo :taskID="2" v-if="false"/>
@@ -36,14 +36,17 @@
     data () {
       return {
         cards : [],
+        tasks : [],
       }
     },
     created(){
 
       this.setTitle();
       this.loadCards();
+      this.loadTasks();
 
-      // eventEmitter.$emit("change_title", this.boardTitle);
+      // tasksUpdate
+      eventEmitter.$on('tasksUpdate', this.loadTasks);
     },
     methods: {
       blurInputs(){
@@ -87,6 +90,27 @@
             if (response.data.status == 'success') {
               // успешно
               this.cards = response.data.cards;
+            } else if (response.data.status == 'fail') {
+              // ошибка
+            }
+          })
+          .catch(error => {
+            // eslint-disable-next-line
+            console.log(error);
+          });
+      },
+      loadTasks(){
+        axios.defaults.withCredentials = true;
+        axios
+          .get(SERVER_API + '?cmd=getTasks&data=' + JSON.stringify({
+            'boardID' : this.id,
+          }))
+          .then(response => {
+            // eslint-disable-next-line
+            console.log('getTasks', response.data);
+            if (response.data.status == 'success') {
+              // успешно
+              this.tasks = response.data.tasks;
             } else if (response.data.status == 'fail') {
               // ошибка
             }
