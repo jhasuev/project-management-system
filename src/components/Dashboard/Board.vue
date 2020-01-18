@@ -8,35 +8,42 @@
   >
     <div class="cols__item"
       @click.self="blurInputs()"
+      v-for="(card,i) in cards" :key="i"
     >
-      <CardTask/>
+      <Card :card="card"/>
     </div>
 
     <div class="cols__item  cols__item--creating"
       @click.self="blurInputs()"
     >
-      <CardCreateForm/>
+      <CardCreateForm :boardID="id"/>
     </div>
 
-    <TaskSingleInfo :taskID="2"/>
+    <TaskSingleInfo :taskID="2" v-if="false"/>
   </div>
 </template>
 <script>
   import {eventEmitter} from '../../main'
   import { dragscroll } from 'vue-dragscroll' // vue-dragscroll | https://www.npmjs.com/package/vue-dragscroll
   import CardCreateForm from './CardCreateForm.vue'
-  import CardTask from './CardTask.vue'
+  import Card from './Card.vue'
   import TaskSingleInfo from './TaskSingleInfo.vue'
+  import {SERVER_API} from '../../main'
+  import axios from 'axios'
 
   export default {
     props: ['id'],
     data () {
       return {
-        
+        cards : [],
       }
     },
     created(){
-      eventEmitter.$emit("change_title", 'Доска номер ' + this.id);
+
+      this.setTitle();
+      this.loadCards();
+
+      // eventEmitter.$emit("change_title", this.boardTitle);
     },
     methods: {
       blurInputs(){
@@ -46,15 +53,56 @@
           // console.log(i, x);
           input.blur();
         })
-
-      }
+      },
+      setTitle(){
+        axios.defaults.withCredentials = true;
+        axios
+          .get(SERVER_API + '?cmd=getBoardTitle&data=' + JSON.stringify({
+            'boardID' : this.id,
+          }))
+          .then(response => {
+            // eslint-disable-next-line
+            console.log('getBoardTitle', response.data);
+            if (response.data.status == 'success') {
+              // успешно
+              eventEmitter.$emit("change_title", response.data.boardTitle);
+            } else if (response.data.status == 'fail') {
+              // ошибка
+            }
+          })
+          .catch(error => {
+            // eslint-disable-next-line
+            console.log(error);
+          });
+      },
+      loadCards(){
+        axios.defaults.withCredentials = true;
+        axios
+          .get(SERVER_API + '?cmd=getCards&data=' + JSON.stringify({
+            'boardID' : this.id,
+          }))
+          .then(response => {
+            // eslint-disable-next-line
+            console.log('getCards', response.data);
+            if (response.data.status == 'success') {
+              // успешно
+              this.cards = response.data.cards;
+            } else if (response.data.status == 'fail') {
+              // ошибка
+            }
+          })
+          .catch(error => {
+            // eslint-disable-next-line
+            console.log(error);
+          });
+      },
     },
     directives: {
       'dragscroll': dragscroll
     },
     components: {
       CardCreateForm,
-      CardTask,
+      Card,
       TaskSingleInfo,
     }
   }

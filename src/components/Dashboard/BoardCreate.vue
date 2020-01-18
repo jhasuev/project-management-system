@@ -74,6 +74,12 @@
               console.log(response.data);
               if (response.data.status == 'success') {
                 // успешно
+                this.title = '';
+                this.is_private = true;
+                this.color_active = {
+                  'bgcolor' : 'white',
+                  'textcolor' : '#000',
+                };
                 this.$emit('boardListUpdate');
               } else if (response.data.status == 'fail') {
                 // ошибка

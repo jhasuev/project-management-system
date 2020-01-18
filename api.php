@@ -116,23 +116,22 @@ switch ($_GET['cmd']) {
 
 		break;
 	case 'createBoard':
-		// возвращаем данные по профилю
-		// debug($_SESSION);
+		// Создаем доску
 		if (isset($_SESSION['userID'])) {
 			$title = trim($data['title']);
-			$color = trim($data['color']);
-			$is_private = trim($data['is_private']);
+			$color = $data['color'];
+			$is_private = !!$data['is_private'];
 
 			if ($title) {
 				$Board = new Board();
-				$BoardID = $Board->create(array(
+				$boardID = $Board->create(array(
 					'userID' => $_SESSION['userID'],
 					'title' => addslashes($title),
 					'color' => $color,
-					'is_private' => !!$is_private,
+					'is_private' => $is_private,
 					'created_time' => time(),
 				));
-				echo json_encode(array('status' => 'success', 'BoardID' => $BoardID));
+				echo json_encode(array('status' => 'success', 'BoardID' => $boardID));
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -144,11 +143,72 @@ switch ($_GET['cmd']) {
 		break;
 
 	case 'getBoardList':
-		// возвращаем данные по профилю
+		// возвращаем список досок
 		if ($_SESSION['userID']) {
 			$Board = new Board();
 			$boards = $Board->getBoardsList($_SESSION['userID'], array('id', 'title', 'is_private', 'color', 'created_time'));
 			echo json_encode(array('status' => 'success', 'boards' => $boards));
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+
+	case 'createBoardCard':
+		// создаем карточку в доске
+		if (isset($_SESSION['userID'])) {
+			$title = trim($data['title']);
+			$boardID = $data['boardID'] * 1;
+
+			if ($title && $boardID) {
+				$Board = new Board();
+				$cardID = $Board->createCard(array(
+					'title' => addslashes($title),
+					'boardID' => $boardID,
+				));
+				echo json_encode(array('status' => 'success', 'cardID' => $cardID));
+			} else {
+				echo json_encode(array('status' => 'fail'));
+			}
+			
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+
+	case 'getBoardTitle':
+		// создаем карточку в доске
+		if (isset($_SESSION['userID'])) {
+			$boardID = $data['boardID'] * 1;
+
+			if ($boardID) {
+				$Board = new Board();
+				$boardTitle = $Board->getBoardTitle($boardID);
+				echo json_encode(array('status' => 'success', 'boardTitle' => $boardTitle));
+			} else {
+				echo json_encode(array('status' => 'fail'));
+			}
+			
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+
+	case 'getCards':
+		// создаем карточку в доске
+		if (isset($_SESSION['userID'])) {
+			$boardID = $data['boardID'] * 1;
+
+			if ($boardID) {
+				$Board = new Board();
+				$cards = $Board->getCards($boardID);
+				echo json_encode(array('status' => 'success', 'cards' => $cards));
+			} else {
+				echo json_encode(array('status' => 'fail'));
+			}
+			
 		} else {
 			echo json_encode(array('status' => 'fail'));
 		}

@@ -2,7 +2,7 @@
   <div>
     <v-tooltip top>
       <template v-slot:activator="{ on }">
-        <div class="card-title" v-on="on">Новая карточка в которой что то есть...</div>
+        <div class="card-title" v-on="on">{{card.title}}</div>
       </template>
       <span>Новая карточка в которой что то есть...</span>
     </v-tooltip>
@@ -68,7 +68,7 @@
   // import {eventEmitter} from '../../main'
   import CardTaskCreateForm from './CardTaskCreateForm.vue'
   export default {
-    props: ['id'],
+    props: ['card'],
     data () {
       return {
         
