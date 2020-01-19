@@ -69,7 +69,10 @@ class Board {
 	}
 
 	public function getTasks($boardID){
-		$sql = "SELECT `id`,`cardID`,`title` FROM `boardtasks` WHERE `boardID` = {$boardID} ORDER BY `id` DESC";
+		$sql = "SELECT `id`,`cardID`,`title`,`deadline`, (IF(`checkList` != '', 1, '')) as `checkList`
+						FROM `boardtasks` 
+						WHERE `boardID` = {$boardID} 
+						ORDER BY `id` DESC";
 
 		$result = $GLOBALS['db']->mysqli->query($sql);
 		if ($result->num_rows === 0) {
@@ -83,6 +86,20 @@ class Board {
 		}
 
 		return $cards;
+	}
+
+	public function getSingleTask($taskID){
+		$sql = "SELECT `id`,`title`,`description`,`deadline`,`checkList`,`done`
+						FROM `boardtasks` 
+						WHERE `id` = {$taskID} 
+						ORDER BY `id` DESC";
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+
+		return $result->fetch_assoc();
 	}
 
 	public function createTask($board_data){

@@ -18,8 +18,6 @@
     >
       <CardCreateForm :boardID="id" @cardsUpdate="loadCards();"/>
     </div>
-
-    <TaskSingleInfo :taskID="2" v-if="false"/>
   </div>
 </template>
 <script>
@@ -27,7 +25,6 @@
   import { dragscroll } from 'vue-dragscroll' // vue-dragscroll | https://www.npmjs.com/package/vue-dragscroll
   import CardCreateForm from './CardCreateForm.vue'
   import Card from './Card.vue'
-  import TaskSingleInfo from './TaskSingleInfo.vue'
   import {SERVER_API} from '../../main'
   import axios from 'axios'
 
@@ -127,7 +124,6 @@
     components: {
       CardCreateForm,
       Card,
-      TaskSingleInfo,
     }
   }
 </script>

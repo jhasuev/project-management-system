@@ -240,6 +240,25 @@ switch ($_GET['cmd']) {
 
 		break;
 
+	case 'getSingleTask':
+		// получаем задачу
+		if (isset($_SESSION['userID'])) {
+			$taskID = $data['taskID'] * 1;
+
+			if ($taskID) {
+				$Board = new Board();
+				$task = $Board->getSingleTask($taskID);
+				echo json_encode(array('status' => 'success', 'task' => $task));
+			} else {
+				echo json_encode(array('status' => 'fail'));
+			}
+			
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+
 	case 'getCards':
 		// получаем карты / колонки 
 		if (isset($_SESSION['userID'])) {

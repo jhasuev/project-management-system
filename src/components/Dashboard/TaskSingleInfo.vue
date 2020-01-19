@@ -31,30 +31,30 @@
         <v-divider class="my-4"></v-divider>
 
         <div class="task-heading">
-          <div v-if="is_desc_editting">
+          <div v-if="is_description_editting">
             <v-textarea
-              name="desc"
+              name="description"
               label="Опишите задачу (необязательно)"
               filled
               auto-grow
               rows="2"
               row-height="1"
               hide-details
-              v-model="desc"
+              v-model="description"
             ></v-textarea>
 
             <div class="d-flex" style="padding-top: 1px">
               <v-spacer></v-spacer>
-              <v-btn small depressed @click="is_desc_editting = false" class="ml-1" color="warning">отмена</v-btn>
-              <v-btn small depressed @click="is_desc_editting = false" class="ml-1" color="success">сохранить</v-btn>
+              <v-btn small depressed @click="is_description_editting = false" class="ml-1" color="warning">отмена</v-btn>
+              <v-btn small depressed @click="is_description_editting = false" class="ml-1" color="success">сохранить</v-btn>
             </div>
           </div>
           <div v-else>
-            <span class="body-2" style="vertical-align:middle;">{{desc}}</span>
-            <v-btn depressed small v-if="desc.trim()" @click="is_desc_editting = true" class="ml-2">
+            <span class="body-2" style="vertical-align:middle;">{{description}}</span>
+            <v-btn depressed small v-if="description.trim()" @click="is_description_editting = true" class="ml-2">
                 <v-icon>mdi-playlist-edit</v-icon>
             </v-btn>
-            <v-btn v-else depressed small  @click="is_desc_editting = true">
+            <v-btn v-else depressed small  @click="is_description_editting = true">
               Добавить описание
             </v-btn>
           </div>
@@ -98,26 +98,77 @@
         <v-divider class="my-8"></v-divider>
 
         <BoardComments/>
-
       </div>
     </v-dialog>
   </v-row>
 </template>
 
 <script>
+  import {eventEmitter} from '../../main'
   import BoardComments from './BoardComments.vue'
   import BoardTaskToDoList from './BoardTaskToDoList.vue'
+  import {SERVER_API} from '../../main'
+  import axios from 'axios'
   export default {
     props : ['taskID'],
     data () {
       return {
         dialog: true,
-        title : 'Задача котору нужно выполнить...',
-        is_title_editting: false,
-        desc : ' ',
-        is_desc_editting: false,
-        deadline: null,
         modal: false,
+        
+        title : '...',
+        is_title_editting: false,
+        description : ' ',
+        is_description_editting: false,
+        deadline: null,
+        checkList : '',
+        done : null,
+      }
+    },
+    watch: {
+      'dialog' : () => {
+        // eslint-disable-next-line
+        console.log('watch -> dialog');
+        eventEmitter.$emit('close');
+      },
+    },
+    created(){
+      // eslint-disable-next-line
+      console.log('created');
+      this.loadTask(this.taskID);
+    },
+    destroyed(){
+      // eslint-disable-next-line
+      console.log('destroyed');
+    },
+    methods:{
+      loadTask(id){
+        axios.defaults.withCredentials = true;
+        axios
+          .get(SERVER_API + '?cmd=getSingleTask&data=' + JSON.stringify({
+            'taskID' : id,
+          }))
+          .then(response => {
+            // eslint-disable-next-line
+            console.log(response.data);
+            if (response.data.status == 'success') {
+              // успешно
+              this.title = response.data.task.title;
+              this.description = response.data.task.description;
+              this.deadline = response.data.task.deadline;
+              this.checkList = response.data.task.checkList;
+              this.done = response.data.task.done;
+            } else if (response.data.status == 'fail') {
+              // ошибка
+              // eslint-disable-next-line
+              console.log(response);
+            }
+          })
+          .catch(error => {
+            // eslint-disable-next-line
+            console.log(error);
+          })
+          .finally(() => (this.loading = false));
       }
     },
     components: {
