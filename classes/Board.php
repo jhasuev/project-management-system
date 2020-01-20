@@ -110,4 +110,23 @@ class Board {
 		$GLOBALS['db']->mysqli->query($sql);
 		return $GLOBALS['db']->mysqli->insert_id;
 	}
+
+	public function changeTaskField($taskID, $field, $value){
+		$sql = "UPDATE `boardtasks`
+					SET `{$field}` = '{$value}'
+					WHERE `id` = {$taskID};";
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result) {
+			$sql = "SELECT `{$field}`
+						FROM `boardtasks` 
+						WHERE `id` = {$taskID}";
+			$result = $GLOBALS['db']->mysqli->query($sql);
+			if ($result->num_rows === 0) {
+				return false;
+			}
+
+			return $result->fetch_assoc();
+		}
+		return false;
+	}
 }

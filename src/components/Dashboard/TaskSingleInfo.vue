@@ -12,17 +12,19 @@
               hide-details
               filled
               v-model="title"
+              :loading="title_loading"
+              :disabled="title_loading"
             ></v-text-field>
 
             <div class="d-flex" style="padding-top: 1px">
               <v-spacer></v-spacer>
-              <v-btn small depressed @click="is_title_editting = false" class="ml-1" color="warning">отмена</v-btn>
-              <v-btn small depressed @click="is_title_editting = false" class="ml-1" color="success">сохранить</v-btn>
+              <v-btn small depressed @click="editTitleCancel()" class="ml-1" color="warning">отмена</v-btn>
+              <v-btn small depressed @click="editTitleSave()" class="ml-1" color="success">сохранить</v-btn>
             </div>
           </div>
           <div v-else>
             <span class="title" style="vertical-align:middle;">{{title}}</span>
-            <v-btn depressed small @click="is_title_editting = true" class="ml-2">
+            <v-btn depressed small @click="editTitle()" class="ml-2">
                 <v-icon>mdi-playlist-edit</v-icon>
             </v-btn>
           </div>
@@ -115,14 +117,20 @@
       return {
         dialog: true,
         modal: false,
-        
+
         title : '...',
         is_title_editting: false,
+        title_loading: false,
+
         description : ' ',
         is_description_editting: false,
+        description_loading: false,
+        
         deadline: null,
         checkList : '',
         done : null,
+        
+        tmp : {},
       }
     },
     watch: {
@@ -155,7 +163,9 @@
               // успешно
               this.title = response.data.task.title;
               this.description = response.data.task.description;
-              this.deadline = response.data.task.deadline;
+              if (response.data.task.deadline * 1) {
+                this.deadline = response.data.task.deadline;
+              }
               this.checkList = response.data.task.checkList;
               this.done = response.data.task.done;
             } else if (response.data.status == 'fail') {
@@ -167,8 +177,60 @@
           .catch(error => {
             // eslint-disable-next-line
             console.log(error);
+          });
+      },
+      editTitle(){
+        this.tmp.title = this.title;
+        this.is_title_editting = true;
+      },
+      editTitleCancel(){
+        this.title = this.tmp.title;
+        this.is_title_editting = false;
+      },
+      editTitleSave(){
+        this.title_loading = true;
+        this.changeField('title', this.title, (new_value) => {
+          this.is_title_editting = false;
+          this.title = new_value.title;
+        });
+      },
+
+      changeField(fieldName, newVal, fallback_fnc){
+        axios.defaults.withCredentials = true;
+        axios
+          .get(SERVER_API + '?cmd=changeTaskField&data=' + JSON.stringify({
+            'taskID' : this.taskID,
+            'field' : fieldName,
+            'value' : newVal,
+          }))
+          .then(response => {
+            // eslint-disable-next-line
+            console.log(response.data);
+            if (response.data.status == 'success') {
+              // успешно
+              fallback_fnc(response.data.new_value);
+            } else if (response.data.status == 'fail') {
+              // ошибка
+              // eslint-disable-next-line
+              console.log(response);
+            }
           })
-          .finally(() => (this.loading = false));
+          .catch(error => {
+            // eslint-disable-next-line
+            console.log(error);
+          })
+          .finally(() => {
+            switch(fieldName){
+              case 'title':
+                this.title_loading = false
+                break;
+              case 'description':
+                this.description_loading = false
+                break;
+              default:
+                this.loading = false
+            }
+          });
       }
     },
     components: {

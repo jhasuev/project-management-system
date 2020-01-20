@@ -277,6 +277,27 @@ switch ($_GET['cmd']) {
 		}
 
 		break;
+
+	case 'changeTaskField':
+		// меняем значение в поле у задачи 
+		if (isset($_SESSION['userID'])) {
+			$taskID = $data['taskID'] * 1;
+			$field = trim($data['field']);
+			$value = addslashes(trim($data['value']));
+
+			if ($taskID && $value) {
+				$Board = new Board();
+				$new_value = $Board->changeTaskField($taskID, $field, $value);
+				echo json_encode(array('status' => 'success', 'new_value' => $new_value));
+			} else {
+				echo json_encode(array('status' => 'fail'));
+			}
+			
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
 	
 	default:
 		# code...
