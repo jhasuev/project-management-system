@@ -17,11 +17,12 @@ function debug($data){
 	echo "</pre>";
 }
 // $_SESSION['asd'] = 'asd';
-// debug($_SESSION);
+// debug($_GET);
 // exit();
 
 if (isset($_GET['data']) && $_GET['data']) {
-	$data = json_decode($_GET['data'], true);
+	// $data = json_decode(urldecode($_GET['data']), true);
+	$data = json_decode(($_GET['data']), true);
 }
 $messages = array();
 
@@ -280,17 +281,18 @@ switch ($_GET['cmd']) {
 
 	case 'changeTaskField':
 		// меняем значение в поле у задачи 
+
 		if (isset($_SESSION['userID'])) {
 			$taskID = $data['taskID'] * 1;
 			$field = trim($data['field']);
 			$value = addslashes(trim($data['value']));
 
-			if ($taskID && $value) {
+			if ($taskID) {
 				$Board = new Board();
 				$new_value = $Board->changeTaskField($taskID, $field, $value);
 				echo json_encode(array('status' => 'success', 'new_value' => $new_value));
 			} else {
-				echo json_encode(array('status' => 'fail'));
+				echo json_encode(array('status' => 'fail 2'));
 			}
 			
 		} else {

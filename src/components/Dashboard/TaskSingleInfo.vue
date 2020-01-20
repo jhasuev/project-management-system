@@ -43,20 +43,22 @@
               row-height="1"
               hide-details
               v-model="description"
+              :loading="description_loading"
+              :disabled="description_loading"
             ></v-textarea>
 
             <div class="d-flex" style="padding-top: 1px">
               <v-spacer></v-spacer>
-              <v-btn small depressed @click="is_description_editting = false" class="ml-1" color="warning">отмена</v-btn>
-              <v-btn small depressed @click="is_description_editting = false" class="ml-1" color="success">сохранить</v-btn>
+              <v-btn small depressed @click="editDescriptionCancel()" class="ml-1" color="warning">отмена</v-btn>
+              <v-btn small depressed @click="editDescriptionSave()" class="ml-1" color="success">сохранить</v-btn>
             </div>
           </div>
           <div v-else>
-            <span class="body-2" style="vertical-align:middle;">{{description}}</span>
-            <v-btn depressed small v-if="description.trim()" @click="is_description_editting = true" class="ml-2">
+            <span class="body-2 pre-line" style="vertical-align:middle;">{{description}}</span>
+            <v-btn depressed small v-if="description.trim()" @click="editDescription()" class="ml-2">
                 <v-icon>mdi-playlist-edit</v-icon>
             </v-btn>
-            <v-btn v-else depressed small  @click="is_description_editting = true">
+            <v-btn v-else depressed small  @click="editDescription()">
               Добавить описание
             </v-btn>
           </div>
@@ -66,8 +68,8 @@
 
         
         <v-dialog
-          ref="dialog"
-          v-model="modal"
+          ref="deadline"
+          v-model="deadline_modal"
           :return-value.sync="deadline"
           persistent
           width="290px"
@@ -82,12 +84,17 @@
               hide-details
               filled
               v-on="on"
+
+              @click:clear="onClearDeadline"
+
+              :loading="deadline_loading"
+              :disabled="deadline_loading"
             ></v-text-field>
           </template>
           <v-date-picker locale="ru" v-model="deadline" scrollable>
             <v-spacer></v-spacer>
-            <v-btn text color="primary" @click="modal = false">Вернуться</v-btn>
-            <v-btn text color="primary" @click="$refs.dialog.save(deadline)">Выбрать</v-btn>
+            <v-btn text color="primary" @click="deadline_modal = false">Вернуться</v-btn>
+            <v-btn text color="primary" @click="editDeadlineSave()">Выбрать</v-btn>
           </v-date-picker>
         </v-dialog>
 
@@ -116,17 +123,19 @@
     data () {
       return {
         dialog: true,
-        modal: false,
+        deadline_modal: false,
 
-        title : '...',
+        title : '',
         is_title_editting: false,
         title_loading: false,
 
-        description : ' ',
+        description : '',
         is_description_editting: false,
         description_loading: false,
         
         deadline: null,
+        deadline_loading: false,
+
         checkList : '',
         done : null,
         
@@ -164,7 +173,9 @@
               this.title = response.data.task.title;
               this.description = response.data.task.description;
               if (response.data.task.deadline * 1) {
-                this.deadline = response.data.task.deadline;
+                // eslint-disable-next-line
+                // console.log(response.data.task.deadline * 1);
+                this.setStrDeadline(response.data.task.deadline * 1);
               }
               this.checkList = response.data.task.checkList;
               this.done = response.data.task.done;
@@ -195,14 +206,61 @@
         });
       },
 
+      editDescription(){
+        this.tmp.description = this.description;
+        this.is_description_editting = true;
+      },
+      editDescriptionCancel(){
+        this.description = this.tmp.description;
+        this.is_description_editting = false;
+      },
+      editDescriptionSave(){
+
+        this.description_loading = true;
+        this.changeField('description', this.description, (new_value) => {
+          this.is_description_editting = false;
+          this.description = new_value.description;
+        });
+      },
+
+
+      editDeadlineSave(){
+        this.deadline_loading = true;
+
+        let this_time = new Date(this.deadline).getTime() / 1000
+
+        this.changeField('deadline', this_time, (new_value) => {
+          this.setStrDeadline(new_value.deadline);
+        });
+      },
+      setStrDeadline(ts){
+        if (ts) {
+          let time = this.getStringifyDate(ts * 1000);
+          this.$refs.deadline.save(time);
+          this.deadline = time;
+        } else {
+          this.$refs.deadline.save('');
+          this.deadline = '';
+        }
+        this.deadline_modal = false;
+
+      },
+      onClearDeadline(){
+        this.deadline_loading = true;
+
+        this.changeField('deadline', '', () => {
+          this.setStrDeadline('');
+        });
+      },
+
       changeField(fieldName, newVal, fallback_fnc){
         axios.defaults.withCredentials = true;
         axios
-          .get(SERVER_API + '?cmd=changeTaskField&data=' + JSON.stringify({
+          .get(SERVER_API + '?cmd=changeTaskField&data=' + encodeURIComponent(JSON.stringify({
             'taskID' : this.taskID,
             'field' : fieldName,
             'value' : newVal,
-          }))
+          })))
           .then(response => {
             // eslint-disable-next-line
             console.log(response.data);
@@ -227,11 +285,28 @@
               case 'description':
                 this.description_loading = false
                 break;
+              case 'deadline':
+                this.deadline_loading = false
+                break;
               default:
                 this.loading = false
             }
           });
-      }
+      },
+      getStringifyDate(ts){
+        let date = new Date(ts);
+        let str = 'yyyy-mm-dd';
+
+        let yyyy = date.getFullYear();
+        let mm = ("0" + (date.getMonth() + 1)).slice(-2);
+        let dd = ("0" + date.getDate()).slice(-2);
+
+        str = str.replace('yyyy', yyyy);
+        str = str.replace('mm', mm);
+        str = str.replace('dd', dd);
+
+        return str;
+      },
     },
     components: {
       BoardComments,
@@ -248,5 +323,8 @@
   }
   .title {
     font-weight: 400;
+  }
+  .pre-line {
+    white-space: pre-line;
   }
 </style>
