@@ -1,7 +1,9 @@
 <template>
   <v-row justify="center">
     <v-dialog v-model="dialog" width="600px">
-      <div class="main-container">
+
+      <div class="main-container" v-if="is_task_loaded">
+      <!-- <div class="main-container" v-if="!false"> -->
 
         <div class="task-heading">
           <div v-if="is_title_editting">
@@ -108,6 +110,74 @@
 
         <BoardComments/>
       </div>
+      
+      <div class="main-container" v-if="!is_task_loaded">
+      <!-- <div class="main-container" v-if="!true"> -->
+
+        <v-skeleton-loader
+          class="mx-auto"
+          type="heading"
+        ></v-skeleton-loader>
+
+        <v-divider class="my-4"></v-divider>
+
+        <v-skeleton-loader
+          class="mx-auto"
+          type="paragraph"
+        ></v-skeleton-loader>
+
+        <v-divider class="my-4"></v-divider>
+
+        <v-skeleton-loader
+          class="mx-auto"
+          style="margin-left: -16px;"
+          type="list-item-avatar"
+          tile
+        ></v-skeleton-loader>
+
+        <v-divider class="my-8"></v-divider>
+
+        <v-skeleton-loader
+          class="mx-auto"
+          type="heading"
+        ></v-skeleton-loader>
+
+        <v-skeleton-loader
+          class="mx-auto"
+          type="list-item"
+          style="margin-left: -16px;"
+        ></v-skeleton-loader>
+
+        <v-divider class="my-8"></v-divider>
+
+        <v-skeleton-loader
+          class="mx-auto"
+          type="heading"
+        ></v-skeleton-loader>
+
+        <v-skeleton-loader
+          class="mx-auto"
+          type="list-item"
+          style="margin-left: -16px;"
+        ></v-skeleton-loader>
+
+        <v-skeleton-loader
+          class="mx-auto"
+          style="margin-left: -16px;"
+          type="list-item-two-line"
+        ></v-skeleton-loader>
+        <v-skeleton-loader
+          class="mx-auto"
+          style="margin-left: -16px;"
+          type="list-item-two-line"
+        ></v-skeleton-loader>
+        <v-skeleton-loader
+          class="mx-auto"
+          style="margin-left: -16px;"
+          type="list-item-two-line"
+        ></v-skeleton-loader>
+
+      </div>
     </v-dialog>
   </v-row>
 </template>
@@ -122,6 +192,7 @@
     props : ['taskID'],
     data () {
       return {
+        is_task_loaded : false,
         dialog: true,
         deadline_modal: false,
 
@@ -160,6 +231,7 @@
     },
     methods:{
       loadTask(id){
+        this.is_task_loaded = false;
         axios.defaults.withCredentials = true;
         axios
           .get(SERVER_API + '?cmd=getSingleTask&data=' + JSON.stringify({
@@ -179,6 +251,8 @@
               }
               this.checkList = response.data.task.checkList;
               this.done = response.data.task.done;
+
+              this.is_task_loaded = true;
             } else if (response.data.status == 'fail') {
               // ошибка
               // eslint-disable-next-line
