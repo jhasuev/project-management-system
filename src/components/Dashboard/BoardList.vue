@@ -49,8 +49,6 @@
 <script>
 
 import BoardCreate from './BoardCreate.vue'
-import {SERVER_API} from '../../main'
-import axios from 'axios'
 
 export default {
   data () {
@@ -93,35 +91,11 @@ export default {
     }
   },
   methods : {
-    getStringifyDate(ts){
-      let date = new Date(ts);
-      let str = 'dd.mm.yyyy в hh:mins';
-
-      let dd = ("0" + date.getDate()).slice(-2);
-      let mm = ("0" + (date.getMonth() + 1)).slice(-2);
-      let yyyy = date.getFullYear();
-      let hh = ("0" + date.getHours()).slice(-2);
-      let mins = ("0" + date.getMinutes()).slice(-2);
-
-      dd;mm;yyyy;hh;mins;
-
-
-      str = str.replace('dd', dd);
-      str = str.replace('mm', mm);
-      str = str.replace('yyyy', yyyy);
-      str = str.replace('hh', hh);
-      str = str.replace('mins', mins);
-
-      return str;
-    },
     showBoardList(){
-      axios.defaults.withCredentials = true;
-      axios
-        .get(SERVER_API + '?cmd=getBoardList')
-        .then(response => {
-          // eslint-disable-next-line
-          // console.log(response.data);
-          if (response.data.status == 'success') {
+      this.axios_req('getBoardList', {
+        'boardID' : 2
+      }, (response) => {
+        if (response.data.status == 'success') {
             // успешно
             this.boards = response.data.boards;
           } else if (response.data.status == 'fail') {
@@ -129,12 +103,10 @@ export default {
             // eslint-disable-next-line
             console.log(response);
           }
-        })
-        .catch(error => {
-          // eslint-disable-next-line
-          console.log(error);
-        })
-        .finally(() => (this.loading = false));
+      }, ()=>{
+        // finally
+        this.loading = false
+      });
     },
   },
   created(){

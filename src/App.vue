@@ -66,7 +66,7 @@
     },
     data: () => ({
       drawer: null,
-      page_title : 'Система Управления Проектом',
+      page_title : DOC_TITLE,
       menu_links : [
         {
           'url'   : '/',

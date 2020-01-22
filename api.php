@@ -17,7 +17,9 @@ function debug($data){
 	echo "</pre>";
 }
 // $_SESSION['asd'] = 'asd';
-// debug($_GET);
+// var_dump($_SESSION);
+// var_dump($_GET);
+// echo 'REQUEST_METHOD ------- ' . $_SERVER['REQUEST_METHOD'];
 // exit();
 
 if (isset($_GET['data']) && $_GET['data']) {

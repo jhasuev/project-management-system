@@ -16,8 +16,6 @@
 </template>
 <script>
   import {eventEmitter} from '../../main'
-  import {SERVER_API} from '../../main'
-  import axios from 'axios'
   export default {
     props: ['boardID', 'cardID'],
     data () {
@@ -28,37 +26,30 @@
     },
     methods: {
       createTask(){
-        // eslint-disable-next-line
-        // console.log(this.boardID, this.cardID);
-
-        this.loading = true;
 
         if (this.title && this.title.trim()) {
+          this.loading = true;
 
-          axios.defaults.withCredentials = true;
-          axios
-            .get(SERVER_API + '?cmd=createTask&data=' + JSON.stringify({
+          this.axios_req('createTask', {
+            data : {
               'title' : this.title.trim(),
               'boardID' : this.boardID,
               'cardID' : this.cardID,
-            }))
-            .then(response => {
-              // eslint-disable-next-line
-              console.log('createTask', response.data);
-              if (response.data.status == 'success') {
-                // успешно
-                this.title = '';
-                // this.$emit('tasksUpdate');
-                eventEmitter.$emit("tasksUpdate");
-              } else if (response.data.status == 'fail') {
-                // ошибка
-              }
-            })
-            .catch(error => {
-              // eslint-disable-next-line
-              console.log(error);
-            })
-            .finally(() => (this.loading = false));
+            }
+          }, (response) => {
+            // eslint-disable-next-line
+            console.log(response);
+            if (response.data.status == 'success') {
+              // успешно
+              this.title = '';
+              eventEmitter.$emit("tasksUpdate");
+            } else if (response.data.status == 'fail') {
+              // ошибка
+            }
+          }, ()=>{
+            // finally
+            this.loading = false
+          });
         }
         
       }

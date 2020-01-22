@@ -186,8 +186,7 @@
   import {eventEmitter} from '../../main'
   import BoardComments from './BoardComments.vue'
   import BoardTaskToDoList from './BoardTaskToDoList.vue'
-  import {SERVER_API} from '../../main'
-  import axios from 'axios'
+  
   export default {
     props : ['taskID'],
     data () {
@@ -232,40 +231,33 @@
     methods:{
       loadTask(id){
         this.is_task_loaded = false;
-        axios.defaults.withCredentials = true;
-        axios
-          .get(SERVER_API + '?cmd=getSingleTask&data=' + JSON.stringify({
+        this.axios_req('getSingleTask', {
+          data : {
             'taskID' : id,
-          }))
-          .then(response => {
-            // eslint-disable-next-line
-            console.log(response.data);
-            if (response.data.status == 'success') {
-              // успешно
-              this.title = response.data.task.title;
-              this.description = response.data.task.description;
-              if (response.data.task.deadline * 1) {
-                // eslint-disable-next-line
-                // console.log(response.data.task.deadline * 1);
-                this.setStrDeadline(response.data.task.deadline * 1);
-              }
-              if (response.data.task.checkList) {
-                this.checkList = JSON.parse(response.data.task.checkList);
-                // this.checkList = response.data.task.checkList;
-              }
-              this.done = response.data.task.done;
-
-              this.is_task_loaded = true;
-            } else if (response.data.status == 'fail') {
-              // ошибка
-              // eslint-disable-next-line
-              console.log(response);
+          }
+        }, (response) => {
+          if (response.data.status == 'success') {
+            // успешно
+            this.title = response.data.task.title;
+            this.description = response.data.task.description;
+            if (response.data.task.deadline * 1) {
+              this.setStrDeadline(response.data.task.deadline * 1);
             }
-          })
-          .catch(error => {
+            if (response.data.task.checkList) {
+              this.checkList = JSON.parse(response.data.task.checkList);
+            }
+            this.done = response.data.task.done;
+
+            this.is_task_loaded = true;
+          } else if (response.data.status == 'fail') {
+            // ошибка
             // eslint-disable-next-line
-            console.log(error);
-          });
+            console.log(response);
+          }
+        }, ()=>{
+          // finally
+        });
+
       },
       editTitle(){
         this.tmp.title = this.title;
@@ -312,7 +304,7 @@
       },
       setStrDeadline(ts){
         if (ts) {
-          let time = this.getStringifyDate(ts * 1000);
+          let time = this.getStringifyDate(ts * 1000, 'yyyy-mm-dd');
           this.$refs.deadline.save(time);
           this.deadline = time;
         } else {
@@ -331,16 +323,13 @@
       },
 
       changeField(fieldName, newVal, fallback_fnc){
-        axios.defaults.withCredentials = true;
-        axios
-          .get(SERVER_API + '?cmd=changeTaskField&data=' + encodeURIComponent(JSON.stringify({
+        this.axios_req('changeTaskField', {
+          data : {
             'taskID' : this.taskID,
             'field' : fieldName,
             'value' : newVal,
-          })))
-          .then(response => {
-            // eslint-disable-next-line
-            console.log(response.data);
+          }
+        }, (response) => {
             if (response.data.status == 'success') {
               // успешно
               fallback_fnc(response.data.new_value);
@@ -349,40 +338,22 @@
               // eslint-disable-next-line
               console.log(response);
             }
-          })
-          .catch(error => {
-            // eslint-disable-next-line
-            console.log(error);
-          })
-          .finally(() => {
-            switch(fieldName){
-              case 'title':
-                this.title_loading = false
-                break;
-              case 'description':
-                this.description_loading = false
-                break;
-              case 'deadline':
-                this.deadline_loading = false
-                break;
-              default:
-                this.loading = false
-            }
-          });
-      },
-      getStringifyDate(ts){
-        let date = new Date(ts);
-        let str = 'yyyy-mm-dd';
-
-        let yyyy = date.getFullYear();
-        let mm = ("0" + (date.getMonth() + 1)).slice(-2);
-        let dd = ("0" + date.getDate()).slice(-2);
-
-        str = str.replace('yyyy', yyyy);
-        str = str.replace('mm', mm);
-        str = str.replace('dd', dd);
-
-        return str;
+        }, ()=>{
+          // finally
+          switch(fieldName){
+            case 'title':
+              this.title_loading = false
+              break;
+            case 'description':
+              this.description_loading = false
+              break;
+            case 'deadline':
+              this.deadline_loading = false
+              break;
+            default:
+              this.loading = false
+          }
+        });
       },
     },
     components: {
