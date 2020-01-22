@@ -292,7 +292,89 @@ switch ($_GET['cmd']) {
 				$new_value = $Board->changeTaskField($taskID, $field, $value);
 				echo json_encode(array('status' => 'success', 'new_value' => $new_value));
 			} else {
-				echo json_encode(array('status' => 'fail 2'));
+				echo json_encode(array('status' => 'fail'));
+			}
+			
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+
+	case 'saveCheckList':
+		// сохраняем чек-лист
+
+		// var_dump(json_decode($_GET['data']), true);
+		// var_dump($_GET['data']);
+		// echo $_GET['data'];
+		// exit();
+
+		if (isset($_SESSION['userID'])) {
+			$taskID = $data['taskID'] * 1;
+			$checkList = addslashes(json_encode($data['checkList']));
+			// echo $checkList;
+			// exit();
+
+			if ($taskID) {
+				$Board = new Board();
+				$new_value = $Board->changeTaskField($taskID, 'checkList', $checkList);
+				echo json_encode(array('status' => 'success', 'new_value' => $new_value));
+			} else {
+				echo json_encode(array('status' => 'fail'));
+			}
+			
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+
+	case 'addComment':
+		// добавялем комментарий в задачу
+
+		// var_dump(json_decode($_GET['data']), true);
+		// var_dump($_GET);
+		// echo $_GET['data'];
+		// exit();
+
+		if (isset($_SESSION['userID']) && trim($data['comment'])) {
+			$taskID = $data['taskID'] * 1;
+			$comment = addslashes($data['comment']);
+
+			if ($taskID) {
+				$Board = new Board();
+				if ($Board->addComment($taskID, $comment)) {
+					echo json_encode(array('status' => 'success'));
+				} else {
+					echo json_encode(array('status' => 'fail'));
+				}
+			} else {
+				echo json_encode(array('status' => 'fail'));
+			}
+			
+		} else {
+			echo json_encode(array('status' => 'fail'));
+		}
+
+		break;
+
+	case 'loadComments':
+		// добавялем комментарий в задачу
+
+		// var_dump(json_decode($_GET['data']), true);
+		// var_dump($_GET);
+		// echo $_GET['data'];
+		// exit();
+
+		if (isset($_SESSION['userID'])) {
+			$taskID = $data['taskID'] * 1;
+
+			if ($taskID) {
+				$Board = new Board();
+				$comments = $Board->loadComments($taskID);
+				echo json_encode(array('status' => 'success', 'comments' => $comments));
+			} else {
+				echo json_encode(array('status' => 'fail'));
 			}
 			
 		} else {

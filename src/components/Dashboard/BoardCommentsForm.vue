@@ -9,6 +9,8 @@
       row-height="1"
       hide-details
       v-model="comment"
+      :loading="loading"
+      :disabled="loading"
     ></v-textarea>
     <v-expand-transition v-if="comment.trim()">
       <div class="d-flex" style="padding-top: 1px">
@@ -26,15 +28,44 @@
 </template>
 <script>
   // import {eventEmitter} from '../../main'
+  import {SERVER_API} from '../../main'
+  import axios from 'axios'
   export default {
+    props: ['taskID'],
     data () {
       return {
+        loading : false,
         comment : '',
       }
     },
     methods: {
       addComment(){
-        alert('add comment');
+        this.loading = true;
+
+        axios.defaults.withCredentials = true;
+        axios
+          .get(SERVER_API + '?cmd=addComment&data=' + encodeURIComponent(JSON.stringify({
+              'taskID' : this.taskID,
+              'comment' : this.comment,
+            })))
+          .then(response => {
+            // eslint-disable-next-line
+            console.log(response.data);
+            if (response.data.status == 'success') {
+              // успешно
+              this.comment = '';
+              this.$emit('loadComments');
+            } else if (response.data.status == 'fail') {
+              // ошибка
+              // eslint-disable-next-line
+              console.log(response);
+            }
+          })
+          .catch(error => {
+            // eslint-disable-next-line
+            console.log(error);
+          })
+          .finally(()=>{this.loading = false});
       }
     }
   }

@@ -129,4 +129,38 @@ class Board {
 		}
 		return false;
 	}
+
+	public function addComment($taskID, $comment){
+		$time = time();
+		$sql = "INSERT INTO `boardcomments`
+					(`userID`,`taskID`, `comment`, `time`)
+				VALUES
+					({$_SESSION['userID']},{$taskID},'{$comment}','{$time}')";
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result) {
+			return true;
+		}
+		return false;
+	}
+
+	public function loadComments($taskID){
+		$sql = "SELECT `boardcomments`.`id`, `fullName`, `comment`, `time`
+				FROM users
+				LEFT JOIN boardcomments ON boardcomments.userID = users.id
+				WHERE `boardcomments`.`taskID` = {$taskID}
+				ORDER BY `boardcomments`.`id` DESC";
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+
+		$comments = array();
+
+		while($row = $result->fetch_assoc()){
+			array_push($comments, $row);
+		}
+
+		return $comments;
+	}
 }

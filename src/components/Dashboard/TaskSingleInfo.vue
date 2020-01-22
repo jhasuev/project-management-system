@@ -2,7 +2,7 @@
   <v-row justify="center">
     <v-dialog v-model="dialog" width="600px">
 
-      <div class="main-container" v-if="is_task_loaded">
+      <div class="main-container" v-show="is_task_loaded">
       <!-- <div class="main-container" v-if="!false"> -->
 
         <div class="task-heading">
@@ -104,14 +104,14 @@
 
         <v-divider class="my-8"></v-divider>
 
-        <BoardTaskToDoList/>
+        <BoardTaskToDoList :taskID="taskID" :checkList="checkList"/>
 
         <v-divider class="my-8"></v-divider>
 
-        <BoardComments/>
+        <BoardComments :taskID="taskID"/>
       </div>
       
-      <div class="main-container" v-if="!is_task_loaded">
+      <div class="main-container" v-show="!is_task_loaded">
       <!-- <div class="main-container" v-if="!true"> -->
 
         <v-skeleton-loader
@@ -207,7 +207,7 @@
         deadline: null,
         deadline_loading: false,
 
-        checkList : '',
+        checkList : [],
         done : null,
         
         tmp : {},
@@ -249,7 +249,10 @@
                 // console.log(response.data.task.deadline * 1);
                 this.setStrDeadline(response.data.task.deadline * 1);
               }
-              this.checkList = response.data.task.checkList;
+              if (response.data.task.checkList) {
+                this.checkList = JSON.parse(response.data.task.checkList);
+                // this.checkList = response.data.task.checkList;
+              }
               this.done = response.data.task.done;
 
               this.is_task_loaded = true;
