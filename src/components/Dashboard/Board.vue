@@ -1,23 +1,33 @@
 <!-- https://github.com/SortableJS/Vue.Draggable -->
 <template>
-  <div
-    class="cols overflow-x-auto grab-bing"
-    v-dragscroll:nochilddrag
-    @dragscrollstart="blurInputs()"
-    @click.self="blurInputs()"
-  >
-    <div class="cols__item"
-      @click.self="blurInputs()"
-      v-for="(card,i) in cards" :key="i"
-    >
-      <Card :card="card" :boardID="id" :tasks="tasks"/>
-    </div>
+  <div>
+    <!-- <div class="pr-4 pt-4 text-right">
+      <v-btn small icon>
+        <v-icon small>mdi-settings</v-icon>
+      </v-btn>
+    </div> -->
 
-    <div class="cols__item  cols__item--creating"
+    <div
+      class="cols overflow-x-auto grab-bing"
+      v-dragscroll:nochilddrag
+      @dragscrollstart="blurInputs()"
       @click.self="blurInputs()"
     >
-      <CardCreateForm :boardID="id" @cardsUpdate="loadCards();"/>
+      <div class="cols__item"
+        @click.self="blurInputs()"
+        v-for="(card,i) in cards" :key="i"
+      >
+        <Card :card="card" :boardID="id" :tasks="tasks"/>
+      </div>
+
+      <div class="cols__item  cols__item--creating"
+        @click.self="blurInputs()"
+      >
+        <CardCreateForm :boardID="id" @cardsUpdate="loadCards();"/>
+      </div>
     </div>
+    
+
   </div>
 </template>
 <script>
@@ -25,8 +35,6 @@
   import { dragscroll } from 'vue-dragscroll' // vue-dragscroll | https://www.npmjs.com/package/vue-dragscroll
   import CardCreateForm from './CardCreateForm.vue'
   import Card from './Card.vue'
-  import {SERVER_API} from '../../main'
-  import axios from 'axios'
 
   export default {
     props: ['id'],
@@ -55,67 +63,52 @@
         })
       },
       setTitle(){
-        axios.defaults.withCredentials = true;
-        axios
-          .get(SERVER_API + '?cmd=getBoardTitle&data=' + JSON.stringify({
+        this.axios_req('getBoardTitle', {
+          data : {
             'boardID' : this.id,
-          }))
-          .then(response => {
-            // eslint-disable-next-line
-            console.log('getBoardTitle', response.data);
-            if (response.data.status == 'success') {
-              // успешно
-              eventEmitter.$emit("change_title", response.data.boardTitle);
-            } else if (response.data.status == 'fail') {
-              // ошибка
-            }
-          })
-          .catch(error => {
-            // eslint-disable-next-line
-            console.log(error);
-          });
+          }
+        }, (response) => {
+          if (response.data.status == 'success') {
+            // успешно
+            eventEmitter.$emit("change_title", response.data.boardTitle);
+          } else if (response.data.status == 'fail') {
+            // ошибка
+          }
+        }, ()=>{
+          // finally
+        });
       },
       loadCards(){
-        axios.defaults.withCredentials = true;
-        axios
-          .get(SERVER_API + '?cmd=getCards&data=' + JSON.stringify({
+        this.axios_req('getCards', {
+          data : {
             'boardID' : this.id,
-          }))
-          .then(response => {
-            // eslint-disable-next-line
-            console.log('getCards', response.data);
-            if (response.data.status == 'success') {
-              // успешно
-              this.cards = response.data.cards;
-            } else if (response.data.status == 'fail') {
-              // ошибка
-            }
-          })
-          .catch(error => {
-            // eslint-disable-next-line
-            console.log(error);
-          });
+          }
+        }, (response) => {
+          if (response.data.status == 'success') {
+            // успешно
+            this.cards = response.data.cards;
+          } else if (response.data.status == 'fail') {
+            // ошибка
+          }
+        }, ()=>{
+          // finally
+        });
       },
       loadTasks(){
-        axios.defaults.withCredentials = true;
-        axios
-          .get(SERVER_API + '?cmd=getTasks&data=' + JSON.stringify({
+        this.axios_req('getTasks', {
+          data : {
             'boardID' : this.id,
-          }))
-          .then(response => {
-            // eslint-disable-next-line
-            console.log('getTasks', response.data);
-            if (response.data.status == 'success') {
-              // успешно
-              this.tasks = response.data.tasks;
-            } else if (response.data.status == 'fail') {
-              // ошибка
-            }
-          })
-          .catch(error => {
-            // eslint-disable-next-line
-            console.log(error);
-          });
+          }
+        }, (response) => {
+          if (response.data.status == 'success') {
+            // успешно
+            this.tasks = response.data.tasks;
+          } else if (response.data.status == 'fail') {
+            // ошибка
+          }
+        }, ()=>{
+          // finally
+        });
       },
     },
     directives: {

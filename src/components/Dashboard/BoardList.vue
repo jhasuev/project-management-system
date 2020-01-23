@@ -8,6 +8,7 @@
         sm="12"
       >
         <h1 class="headline">Ваши доски</h1>
+        <BoardSettings :boardID="setting_boardID" v-if="setting_boardID" :colors="colors"/>
       </v-col>
     </v-row>
     <v-row
@@ -19,7 +20,7 @@
         lg="3"
         xl="2"
       >
-        <board-create :colors="colors" @boardListUpdate="showBoardList()"></board-create>
+        <BoardCreate :colors="colors" @boardListUpdate="showBoardList()"/>
       </v-col>
 
       <v-col
@@ -33,6 +34,11 @@
         :key="i"
       >
         <div class="board  elevation-12" :style="{'background-color' : colors[board.color].bgcolor, 'color' : colors[board.color].textcolor }">
+          <div class="setting-btn-wrapper">
+            <v-btn small icon @click="openSettings(board.id)">
+              <v-icon small>mdi-settings</v-icon>
+            </v-btn>
+          </div>
           <div class="board___type">{{(board.is_private == 1)?'Приватный':'Публичный'}}</div>
           <h2 class="board___title">{{board.title}}</h2>
           <div class="d-flex  align-center  mt-auto">
@@ -47,8 +53,9 @@
 </template>
 
 <script>
-
+import {eventEmitter} from '../../main'
 import BoardCreate from './BoardCreate.vue'
+import BoardSettings from './BoardSettings.vue'
 
 export default {
   data () {
@@ -88,6 +95,7 @@ export default {
           },
         ],
       boards : [],
+      setting_boardID : null,
     }
   },
   methods : {
@@ -108,12 +116,20 @@ export default {
         this.loading = false
       });
     },
+    openSettings(boardID){
+      this.setting_boardID = boardID;
+    }
   },
   created(){
     this.showBoardList();
+
+    eventEmitter.$on('closeSettings', () => {
+      this.setting_boardID = null;
+    });
   },
   components: {
     BoardCreate,
+    BoardSettings,
   }
 }
 </script>
@@ -126,12 +142,23 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 15px;
+
+  position: relative;
 }
 .board--dotted {
   border: 2px dashed #999;
 }
 .board--dotted:hover {
   border-color: #333;
+}
+.setting-btn-wrapper {
+  position: absolute;
+  right: 0;
+  top: 0;
+  opacity: .5;
+}
+.board:hover .setting-btn-wrapper {
+  opacity: 1;
 }
 .board___type {
   font-size: 12px;

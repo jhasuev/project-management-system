@@ -80,4 +80,14 @@ class Auth {
 		}
 		return $result->fetch_assoc();
 	}
+
+	public function getIDByLogin($login){
+		$sql = "SELECT `id` FROM `users` WHERE `login` = '{$login}'";
+		// echo $sql;
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+		return $result->fetch_assoc()['id'];
+	}
 }

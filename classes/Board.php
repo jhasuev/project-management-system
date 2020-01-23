@@ -102,6 +102,27 @@ class Board {
 		return $result->fetch_assoc();
 	}
 
+	public function getSingleBoard($boardID){
+		$sql = "SELECT `id`, `userID`, `title`, `is_private`, `color`, `created_time`, (IF(`userID` != $_SESSION[userID], 0, 1)) as `is_owner` FROM `boards` WHERE `id` = {$boardID}";
+		// $sql = "SELECT `id`, `userID`, `title`, `is_private`, `color`, `created_time` FROM `boards` WHERE `id` = {$boardID}";
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+		return $result->fetch_assoc();
+	}
+
+	public function getBoardOwnerID($boardID){
+		$sql = "SELECT `userID` FROM `boards` WHERE `id` = {$boardID}";
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+		return $result->fetch_assoc()['userID'];
+	}
+
 	public function createTask($board_data){
 		$fields = "`" . implode(array_keys($board_data), "`,`") . "`";
 		$values = "'" . implode(array_values($board_data), "','") . "'";
@@ -120,6 +141,25 @@ class Board {
 			$sql = "SELECT `{$field}`
 						FROM `boardtasks` 
 						WHERE `id` = {$taskID}";
+			$result = $GLOBALS['db']->mysqli->query($sql);
+			if ($result->num_rows === 0) {
+				return false;
+			}
+
+			return $result->fetch_assoc();
+		}
+		return false;
+	}
+
+	public function changeBoardField($boardID, $field, $value){
+		$sql = "UPDATE `boards`
+					SET `{$field}` = '{$value}'
+					WHERE `id` = {$boardID};";
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result) {
+			$sql = "SELECT `{$field}`
+						FROM `boards` 
+						WHERE `id` = {$boardID}";
 			$result = $GLOBALS['db']->mysqli->query($sql);
 			if ($result->num_rows === 0) {
 				return false;
@@ -162,5 +202,55 @@ class Board {
 		}
 
 		return $comments;
+	}
+
+	public function hasParticipant($boardID, $new_userID){
+		$sql = "SELECT `id` 
+				FROM `boardparticipants` 
+				WHERE `boardID` = {$boardID} AND `userID` = {$new_userID}";
+		// echo $sql;
+		// exit();
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+		return $result->fetch_assoc();
+	}
+
+	public function addParticipant($boardID, $new_userID){
+		$sql = "INSERT INTO `boardparticipants`
+					(`boardID`,`userID`)
+				VALUES
+					({$boardID}, {$new_userID})";
+		// echo $sql;
+		// exit();
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result) {
+			return true;
+		}
+		return false;
+	}
+
+	public function loadParticipants($boardID){
+		$sql = "SELECT `users`.`id`,`login`, `fullName`
+				FROM users
+				LEFT JOIN boardparticipants ON boardparticipants.userID = users.id
+				WHERE `boardparticipants`.`boardID` = {$boardID}
+				ORDER BY `boardparticipants`.`id` DESC";
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+
+		$cards = array();
+
+		while($row = $result->fetch_assoc()){
+			array_push($cards, $row);
+		}
+
+		return $cards;
 	}
 }

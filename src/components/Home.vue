@@ -6,7 +6,9 @@
   export default {
     created(){
       /*this.axios_req('getBoardTitle', {
-        'boardID' : 2
+        data : {
+          'boardID' : this.boardID
+        }
       }, (response) => {
         // eslint-disable-next-line
         console.log(response);
