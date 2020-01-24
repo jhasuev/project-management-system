@@ -16,7 +16,7 @@
         // finally
       });*/
 
-      this.axios_req('checkAuth', null, (response) => {
+      /*this.axios_req('checkAuth', null, (response) => {
         if(this.$router.currentRoute.path == '/') {
           if(response.data.status == 'success') {
             this.$router.push('/dashboard');
@@ -26,7 +26,7 @@
         }
       }, ()=>{
         // finally
-      });
+      });*/
     },
   }
 </script>

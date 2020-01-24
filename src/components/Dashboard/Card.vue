@@ -76,6 +76,9 @@
     },
     computed: {
       filteredTasks(){
+        if (typeof this.tasks != 'object') {
+          return [];
+        }
         return this.tasks.filter((task) => {
           return task.cardID == this.card.id;
         });

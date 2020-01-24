@@ -27,7 +27,11 @@
           <v-divider :key="i + '_1'"></v-divider>
           <v-list-item :key="i + '_2'">
             <v-list-item-content>
-              <v-list-item-title>{{comment.fullName}}</v-list-item-title>
+              <v-list-item-title  class="d-flex align-center">
+                <v-icon class="mr-2">mdi-account</v-icon>
+                {{comment.fullName}}
+                (<span class="grey--text">@{{comment.login}}</span>)
+              </v-list-item-title>
               <v-list-item-subtitle class="pre-line  pt-1">{{comment.comment}}</v-list-item-subtitle>
               <v-list-item-subtitle class="d-flex pt-2">
                 <v-spacer></v-spacer>

@@ -87,6 +87,8 @@
                   required
                   :clearable="true"
 
+                  @input="new_participant_code = ''"
+
                   v-model="new_participant"
                   :disabled="new_participant_field_loading"
                   :loading="new_participant_field_loading"
@@ -138,7 +140,7 @@
         new_participant_code : '',
         new_participant_lists : {
           'already_added' : 'Пользователь уже участвует в данной доске',
-          'login_not_exists' : 'Такой пользователя не существует',
+          'login_not_exists' : 'Такого пользователя не существует',
           'login_incorrect' : 'Неверный логин',
           'fail' : 'Что-то пошло не так. Попробуйте позже.',
           'login_is_empty' : 'Введите логин',

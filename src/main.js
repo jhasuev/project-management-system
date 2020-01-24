@@ -21,13 +21,42 @@ const SERVER_API = SERVER_HOST + 'api.php';
 export {SERVER_API};
 
 Vue.mixin({
+  data(){
+    return {
+      user_authed : null,
+    }
+  },
   methods : {
     axios_req(cmd, params, then, finally_cb){
+      // eslint-disable-next-line
+      console.log({
+        cmd, params, then, finally_cb
+      });
+
+      let this_route = this.$router.currentRoute.path;
+
       axios.get(SERVER_API + '?cmd=' + cmd, {
         params: params,
         withCredentials : true,
       })
       .then((response) => {
+        if(response.data  && response.data.status == 'success') {
+          this.user_authed = true;
+        } else {
+          this.user_authed = false;
+        }
+
+        if(response.data  && response.data.status == 'no_access') {
+          // eslint-disable-next-line
+          // console.log('eslint-disable-next-line');
+          if(this.$router.currentRoute.path == this_route){
+            this.$router.push('/dashboard');
+          }
+        }
+
+        // eslint-disable-next-line
+        console.log(response);
+
         then(response);
       })
       .catch((error) => {
@@ -58,7 +87,55 @@ Vue.mixin({
       str = str.replace('mins', mins);
 
       return str;
+    },
+    redirect(to, if_user){
+
+      let this_route = this.$router.currentRoute.path;
+
+      // eslint-disable-next-line
+      console.log('this.redirect()', this.user_authed);
+
+      if(this.user_authed === null){
+        this.axios_req('checkAuth', {}, (response) => {
+          // eslint-disable-next-line
+          console.log(this.$router.currentRoute.path, this_route);
+
+          if(response.data && response.data.status == 'success'){
+            this.user_authed = true;
+            if(if_user && this.$router.currentRoute.path == this_route){
+              this.$router.push(to);
+            }
+          } else {
+            this.user_authed = false;
+            if(!if_user && this.$router.currentRoute.path == this_route){
+              this.$router.push(to);
+            }
+          }
+        });
+      } else {
+        if(this.user_authed){
+          if(if_user){
+            this.$router.push(to);
+          }
+        } else {
+          if(!if_user){
+            this.$router.push(to);
+          }
+        }
+      }
+    },
+    setAuth(){
+      this.axios_req('checkAuth', {}, (response) => {
+        if(response.data && response.data.status == 'success'){
+          this.user_authed = true;
+        } else {
+          this.user_authed = false;
+        }
+      });
     }
+  },
+  created(){
+    
   }
 })
 

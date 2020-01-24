@@ -98,6 +98,8 @@ export default {
             this.messages = [];
             if (response.data.status == 'success') {
               // успешно
+              // eventEmitter.$emit('user_login');
+              this.user_authed = true;
               this.$router.push('/dashboard');
             } else if (response.data.status == 'fail') {
               // ошибка
@@ -118,6 +120,7 @@ export default {
   },
   computed : {},
   created(){
+    this.redirect('/dashboard', true);
     if (!this.no_change_title) {
       eventEmitter.$emit("change_title", 'Войти');
     }

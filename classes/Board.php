@@ -11,10 +11,12 @@ class Board {
 		return $GLOBALS['db']->mysqli->insert_id;
 	}
 
-	public function getBoardsList($userID, $fields){
-		$fields = "`" . implode($fields, "`,`") . "`";
-
-		$sql = "SELECT {$fields} FROM `boards` WHERE `userID` = {$userID} ORDER BY `id` DESC";
+	public function getBoardsList($userID){
+		$sql = "SELECT `boards`.`id`, `title`, `is_private`, `color`, `created_time`, (IF(`boards`.`userID` = {$userID}, 1, 0)) as `is_owner` 
+				FROM `boards`
+				LEFT JOIN `boardparticipants` ON boardparticipants.boardID = boards.id
+				WHERE `boards`.`userID` = {$userID} OR `boardparticipants`.`userID` = {$userID}
+				ORDER BY `boards`.`id` DESC";
 
 		// echo $sql;
 
@@ -184,7 +186,7 @@ class Board {
 	}
 
 	public function loadComments($taskID){
-		$sql = "SELECT `boardcomments`.`id`, `fullName`, `comment`, `time`
+		$sql = "SELECT `boardcomments`.`id`, `login`, `fullName`, `comment`, `time`
 				FROM users
 				LEFT JOIN boardcomments ON boardcomments.userID = users.id
 				WHERE `boardcomments`.`taskID` = {$taskID}
@@ -204,7 +206,7 @@ class Board {
 		return $comments;
 	}
 
-	public function hasParticipant($boardID, $new_userID){
+	public function isParticipant($boardID, $new_userID){
 		$sql = "SELECT `id` 
 				FROM `boardparticipants` 
 				WHERE `boardID` = {$boardID} AND `userID` = {$new_userID}";

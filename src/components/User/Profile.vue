@@ -16,7 +16,7 @@
             flat
           >
             <v-toolbar-title>Мой профиль</v-toolbar-title>
-            
+
           </v-toolbar>
           <v-card-text>
             <v-simple-table>
@@ -54,8 +54,6 @@
 
 <script>
 import {eventEmitter} from '../../main'
-import {SERVER_API} from '../../main'
-import axios from 'axios'
 export default {
   data () {
     return {
@@ -70,45 +68,31 @@ export default {
       // eslint-disable-next-line
       // console.log(111);
       this.loading = true;
-      axios.defaults.withCredentials = true;
-      axios
-        .get(SERVER_API + '?cmd=logout')
-        .then(response => {
-          // eslint-disable-next-line
-          // console.log(response.data);
-          if (response.data.status == 'success') {
-            // успешно
-            this.$router.push('/login');
-          } else {
-            // eslint-disable-next-line
-            console.log(response);
-          }
-        })
-        .catch(error => {
-          // eslint-disable-next-line
-          console.log(error);
-        })
-        .finally(() => (this.loading = false));
-    }
-  },
-  computed : {
-    
-  },
-  created(){
-    eventEmitter.$emit("change_title", 'Профиль');
-    
-    this.loading = true;
-    axios.defaults.withCredentials = true;
-    axios
-      .get(SERVER_API + '?cmd=getProfileData')
-      .then(response => {
-        // eslint-disable-next-line
-        // console.log(response.data);
+      this.axios_req('logout', {}, (response) => {
         if (response.data.status == 'success') {
           // успешно
-          // this.$router.push('/login');
+          // eventEmitter.$emit('user_logout');
+          this.user_authed = false;
+          this.$router.push('/login');
+        } else {
           // eslint-disable-next-line
+          console.log(response);
+        }
+      }, ()=>{
+        // finally
+        this.loading = false
+      });
+    }
+  },
+  created(){
+    this.redirect('/login', false);
 
+    eventEmitter.$emit("change_title", 'Профиль');
+    this.loading = true;
+
+    this.axios_req('getProfileData', {}, (response) => {
+      if (response.data.status == 'success') {
+          // успешно
           this.login = response.data.user.login;
           this.fullName = response.data.user.fullName;
           this.email = response.data.user.email;
@@ -116,12 +100,11 @@ export default {
           // eslint-disable-next-line
           console.log(response);
         }
-      })
-      .catch(error => {
-        // eslint-disable-next-line
-        console.log(error);
-      })
-      .finally(() => (this.loading = false));
+    }, ()=>{
+      // finally
+      this.loading = false
+    });
+    
   }
 }
 </script>

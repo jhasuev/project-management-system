@@ -34,12 +34,20 @@
         :key="i"
       >
         <div class="board  elevation-12" :style="{'background-color' : colors[board.color].bgcolor, 'color' : colors[board.color].textcolor }">
-          <div class="setting-btn-wrapper">
+          <div class="setting-btn-wrapper" v-if="board.is_owner*1">
             <v-btn small icon @click="openSettings(board.id)">
               <v-icon small>mdi-settings</v-icon>
             </v-btn>
           </div>
-          <div class="board___type">{{(board.is_private == 1)?'Приватный':'Публичный'}}</div>
+          
+          <div class="mb-1">
+            <div class="board___type" v-if="board.is_owner*1">{{(board.is_private == 1)?'Приватный':'Публичный'}}</div>
+            <div class="board___type" v-else>
+              <v-icon class="mr-1">mdi-link</v-icon>
+              По приглашению
+            </div>
+          </div>
+
           <h2 class="board___title">{{board.title}}</h2>
           <div class="d-flex  align-center  mt-auto">
             <span class="board___date">{{getStringifyDate(board.created_time * 1000)}}</span>
@@ -163,6 +171,7 @@ export default {
 .board___type {
   font-size: 12px;
   /*opacity: .5;*/
+  min-height: 24px;
 }
 .board___title {
   line-height: 1;

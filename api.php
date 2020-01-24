@@ -149,7 +149,14 @@ switch ($_GET['cmd']) {
 		// возвращаем список досок
 		if ($_SESSION['userID']) {
 			$Board = new Board();
-			$boards = $Board->getBoardsList($_SESSION['userID'], array('id', 'title', 'is_private', 'color', 'created_time'));
+			$boards = $Board->getBoardsList($_SESSION['userID']);
+
+			// if (!is_array($boards)) {
+			// 	$boards = array();
+			// }
+
+			// $invited_boards = 
+
 			echo json_encode(array('status' => 'success', 'boards' => $boards));
 		} else {
 			echo json_encode(array('status' => 'fail'));
@@ -165,11 +172,17 @@ switch ($_GET['cmd']) {
 
 			if ($title && $boardID) {
 				$Board = new Board();
-				$cardID = $Board->createCard(array(
-					'title' => addslashes($title),
-					'boardID' => $boardID,
-				));
-				echo json_encode(array('status' => 'success', 'cardID' => $cardID));
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					
+					$cardID = $Board->createCard(array(
+						'title' => addslashes($title),
+						'boardID' => $boardID
+					));
+					echo json_encode(array('status' => 'success', 'cardID' => $cardID));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -187,8 +200,14 @@ switch ($_GET['cmd']) {
 
 			if ($boardID) {
 				$Board = new Board();
-				$boardTitle = $Board->getBoardTitle($boardID);
-				echo json_encode(array('status' => 'success', 'boardTitle' => $boardTitle));
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					
+					$boardTitle = $Board->getBoardTitle($boardID);
+					echo json_encode(array('status' => 'success', 'boardTitle' => $boardTitle));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -208,12 +227,18 @@ switch ($_GET['cmd']) {
 
 			if ($title && $boardID) {
 				$Board = new Board();
-				$taskID = $Board->createTask(array(
-					'boardID' => $boardID,
-					'cardID' => $cardID,
-					'title' => addslashes($title),
-				));
-				echo json_encode(array('status' => 'success', 'taskID' => $taskID));
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					
+					$taskID = $Board->createTask(array(
+						'boardID' => $boardID,
+						'cardID' => $cardID,
+						'title' => addslashes($title),
+					));
+					echo json_encode(array('status' => 'success', 'taskID' => $taskID));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -229,10 +254,18 @@ switch ($_GET['cmd']) {
 		if (isset($_SESSION['userID'])) {
 			$boardID = $data['boardID'] * 1;
 
+
 			if ($boardID) {
 				$Board = new Board();
-				$tasks = $Board->getTasks($boardID);
-				echo json_encode(array('status' => 'success', 'tasks' => $tasks));
+				
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					
+					$tasks = $Board->getTasks($boardID);
+					echo json_encode(array('status' => 'success', 'tasks' => $tasks));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -269,8 +302,16 @@ switch ($_GET['cmd']) {
 
 			if ($boardID) {
 				$Board = new Board();
-				$singleBoard = $Board->getSingleBoard($boardID);
-				echo json_encode(array('status' => 'success', 'board' => $singleBoard));
+
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+
+					$singleBoard = $Board->getSingleBoard($boardID);
+					echo json_encode(array('status' => 'success', 'board' => $singleBoard));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
+
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -288,8 +329,15 @@ switch ($_GET['cmd']) {
 
 			if ($boardID) {
 				$Board = new Board();
-				$cards = $Board->getCards($boardID);
-				echo json_encode(array('status' => 'success', 'cards' => $cards));
+				
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					$cards = $Board->getCards($boardID);
+					echo json_encode(array('status' => 'success', 'cards' => $cards));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
+
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -310,8 +358,14 @@ switch ($_GET['cmd']) {
 
 			if ($taskID) {
 				$Board = new Board();
-				$new_value = $Board->changeTaskField($taskID, $field, $value);
-				echo json_encode(array('status' => 'success', 'new_value' => $new_value));
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					
+					$new_value = $Board->changeTaskField($taskID, $field, $value);
+					echo json_encode(array('status' => 'success', 'new_value' => $new_value));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -334,8 +388,14 @@ switch ($_GET['cmd']) {
 
 			if ($boardID) {
 				$Board = new Board();
-				$new_value = $Board->changeBoardField($boardID, $field, $value);
-				echo json_encode(array('status' => 'success', 'new_value' => $new_value));
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					
+					$new_value = $Board->changeBoardField($boardID, $field, $value);
+					echo json_encode(array('status' => 'success', 'new_value' => $new_value));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -362,8 +422,14 @@ switch ($_GET['cmd']) {
 
 			if ($taskID) {
 				$Board = new Board();
-				$new_value = $Board->changeTaskField($taskID, 'checkList', $checkList);
-				echo json_encode(array('status' => 'success', 'new_value' => $new_value));
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					
+					$new_value = $Board->changeTaskField($taskID, 'checkList', $checkList);
+					echo json_encode(array('status' => 'success', 'new_value' => $new_value));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -388,10 +454,16 @@ switch ($_GET['cmd']) {
 
 			if ($taskID) {
 				$Board = new Board();
-				if ($Board->addComment($taskID, $comment)) {
-					echo json_encode(array('status' => 'success'));
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					
+					if ($Board->addComment($taskID, $comment)) {
+						echo json_encode(array('status' => 'success'));
+					} else {
+						echo json_encode(array('status' => 'fail'));
+					}
 				} else {
-					echo json_encode(array('status' => 'fail'));
+					echo json_encode(array('status' => 'no_access'));
 				}
 			} else {
 				echo json_encode(array('status' => 'fail'));
@@ -411,8 +483,14 @@ switch ($_GET['cmd']) {
 
 			if ($taskID) {
 				$Board = new Board();
-				$comments = $Board->loadComments($taskID);
-				echo json_encode(array('status' => 'success', 'comments' => $comments));
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					
+					$comments = $Board->loadComments($taskID);
+					echo json_encode(array('status' => 'success', 'comments' => $comments));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
@@ -431,31 +509,38 @@ switch ($_GET['cmd']) {
 
 			if ($boardID) {
 				$Board = new Board();
-				$Auth = new Auth();
-				$login = addslashes($data['login']);
 
-				if ($Auth->isCorrectLogin($login)) {
-					$new_userID = $Auth->getIDByLogin($login);
-					if ($new_userID) {
-						if ($Board->hasParticipant($boardID, $new_userID)) {
-							echo json_encode(array('status' => 'already_added'));
-						} else {
-							if ($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) {
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID'])) {
+					$Auth = new Auth();
+					$login = addslashes($data['login']);
+					
+					if ($Auth->isCorrectLogin($login)) {
+						$new_userID = $Auth->getIDByLogin($login);
+						if ($new_userID) {
+							if ($Board->isParticipant($boardID, $new_userID)) {
 								echo json_encode(array('status' => 'already_added'));
 							} else {
-								$result = $Board->addParticipant($boardID, $new_userID);
-								echo json_encode(array('status' => 'success', 'result' => $result));
+								if ($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) {
+									echo json_encode(array('status' => 'already_added'));
+								} else {
+									$result = $Board->addParticipant($boardID, $new_userID);
+									echo json_encode(array('status' => 'success', 'result' => $result));
+								}
 							}
+						} else {
+							echo json_encode(array('status' => 'login_not_exists'));
 						}
 					} else {
-						echo json_encode(array('status' => 'login_not_exists'));
+						echo json_encode(array('status' => 'login_incorrect'));
 					}
 				} else {
-					echo json_encode(array('status' => 'login_incorrect'));
+					echo json_encode(array('status' => 'no_access'));
 				}
+
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
+
 		} else {
 			echo json_encode(array('status' => 'fail'));
 		}
@@ -470,19 +555,29 @@ switch ($_GET['cmd']) {
 
 			if ($boardID) {
 				$Board = new Board();
-				$Auth = new Auth();
-				$participants = $Board->loadParticipants($boardID);
+				if (($Board->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+					($Board->isParticipant($boardID, $_SESSION['userID']))) {
+					
+					$Auth = new Auth();
+					$participants = $Board->loadParticipants($boardID);
 
+					if (!is_array($participants)) {
+						$participants = array();
+					}
 
-				$boardOwnerID = $Board->getBoardOwnerID($boardID);
-				$owner_data = $Auth->getProfileData($boardOwnerID, array('id', 'login', 'fullName'));
+					$boardOwnerID = $Board->getBoardOwnerID($boardID);
+					$owner_data = $Auth->getProfileData($boardOwnerID, array('id', 'login', 'fullName'));
 
-				array_unshift($participants, $owner_data);
+					array_unshift($participants, $owner_data);
 
-				echo json_encode(array('status' => 'success', 'participants' => $participants));
+					echo json_encode(array('status' => 'success', 'participants' => $participants));
+				} else {
+					echo json_encode(array('status' => 'no_access'));
+				}
 			} else {
 				echo json_encode(array('status' => 'fail'));
 			}
+
 			
 		} else {
 			echo json_encode(array('status' => 'fail'));

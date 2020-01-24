@@ -17,7 +17,7 @@
       <v-toolbar-items 
         class="d-none d-sm-flex"
       >
-        <v-btn text :to="menu.url" v-for="(menu, index) in menu_links" :key="index">
+        <v-btn text :to="menu.url" v-for="(menu, index) in ((user_authed)?menu_links_authed:menu_links_non_authed)" :key="index">
           <v-icon class="mr-3">{{menu.icon}}</v-icon>
           {{menu.title}}
         </v-btn>
@@ -30,7 +30,7 @@
       temporary
     >
       <v-list dense>
-        <v-list-item :to="menu.url" v-for="(menu, index) in menu_links" :key="index">
+        <v-list-item :to="menu.url" v-for="(menu, index) in ((user_authed)?menu_links_authed:menu_links_non_authed)" :key="index">
           <v-list-item-action>
             <v-icon>{{menu.icon}}</v-icon>
           </v-list-item-action>
@@ -48,10 +48,14 @@
     <v-footer
       app
       color="orange"
-      class="white--text"
+      class="white--text  text-center"
     >
       <v-spacer />
-      <span>&copy; 2019</span>
+      <span>
+        user_authed: {{user_authed}}
+        <br>
+        &copy; 2019
+      </span>
       <v-spacer />
     </v-footer>
   </v-app>
@@ -67,17 +71,12 @@
     data: () => ({
       drawer: null,
       page_title : DOC_TITLE,
-      menu_links : [
+      menu_links_non_authed : [
         {
           'url'   : '/',
           'icon'  : 'mdi-home',
           'title' : 'Главная'
         },
-        // {
-        //   'url'   : '/dashboard',
-        //   'icon'  : 'mdi-home',
-        //   'title' : 'Главная'
-        // },
         {
           'url'   : '/login',
           'icon'  : 'mdi-account',
@@ -87,6 +86,13 @@
           'url'   : '/register',
           'icon'  : 'mdi-account-multiple-plus',
           'title' : 'Регистрация'
+        },
+      ],
+      menu_links_authed : [
+        {
+          'url'   : '/dashboard',
+          'icon'  : 'mdi-home',
+          'title' : 'Все доски'
         },
         {
           'url'   : '/profile',
@@ -100,6 +106,11 @@
         this.page_title = page_title;
         document.title = page_title + ' | ' + DOC_TITLE;
       });
+
+      this.setAuth();
+      // eslint-disable-next-line
+      console.log('App.vue:created()');
+
     }
   }
 </script>

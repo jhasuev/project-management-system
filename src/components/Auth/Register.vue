@@ -142,6 +142,7 @@ export default {
               // this.$store.commit('setLogin', this.login.trim());
               // this.$store.commit('setFullName', this.fullName.trim());
               // this.$store.commit('setEmail', this.email.trim());
+              this.user_authed = true;
               this.$router.push('/');
 
             } else if (response.data.status == 'fail') {
@@ -164,6 +165,8 @@ export default {
   computed : {
   },
   created(){
+    this.redirect('/dashboard', true);
+
     eventEmitter.$emit("change_title", 'Регистрация');
     
     // SERVER_API;

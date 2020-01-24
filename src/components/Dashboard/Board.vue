@@ -45,7 +45,6 @@
       }
     },
     created(){
-
       this.setTitle();
       this.loadCards();
       this.loadTasks();
