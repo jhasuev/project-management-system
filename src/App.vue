@@ -17,7 +17,7 @@
       <v-toolbar-items 
         class="d-none d-sm-flex"
       >
-        <v-btn text :to="menu.url" v-for="(menu, index) in ((user_authed)?menu_links_authed:menu_links_non_authed)" :key="index">
+        <v-btn text :to="menu.url" v-for="(menu, index) in (($root.is_authed)?menu_links_authed:menu_links_non_authed)" :key="index">
           <v-icon class="mr-3">{{menu.icon}}</v-icon>
           {{menu.title}}
         </v-btn>
@@ -30,7 +30,7 @@
       temporary
     >
       <v-list dense>
-        <v-list-item :to="menu.url" v-for="(menu, index) in ((user_authed)?menu_links_authed:menu_links_non_authed)" :key="index">
+        <v-list-item :to="menu.url" v-for="(menu, index) in (($root.is_authed)?menu_links_authed:menu_links_non_authed)" :key="index">
           <v-list-item-action>
             <v-icon>{{menu.icon}}</v-icon>
           </v-list-item-action>
@@ -52,9 +52,9 @@
     >
       <v-spacer />
       <span>
-        user_authed: {{user_authed}}
+        $root.is_authed: {{$root.is_authed}}
         <br>
-        &copy; 2019
+        &copy; 2019-{{new Date().getFullYear()}}
       </span>
       <v-spacer />
     </v-footer>
@@ -65,9 +65,6 @@
   import {eventEmitter} from './main'
   import {DOC_TITLE} from './main'
   export default {
-    props: {
-      source: String,
-    },
     data: () => ({
       drawer: null,
       page_title : DOC_TITLE,
@@ -102,12 +99,12 @@
       ],
     }),
     created(){
+      // this.$root.is_authed = null;
+
       eventEmitter.$on('change_title', (page_title) => {
         this.page_title = page_title;
         document.title = page_title + ' | ' + DOC_TITLE;
       });
-
-      this.setAuth();
       // eslint-disable-next-line
       console.log('App.vue:created()');
 

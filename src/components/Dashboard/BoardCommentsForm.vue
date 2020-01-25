@@ -31,7 +31,7 @@
   import {SERVER_API} from '../../main'
   import axios from 'axios'
   export default {
-    props: ['taskID'],
+    props: ['boardID', 'taskID'],
     data () {
       return {
         loading : false,
@@ -45,6 +45,7 @@
         axios.defaults.withCredentials = true;
         axios
           .get(SERVER_API + '?cmd=addComment&data=' + encodeURIComponent(JSON.stringify({
+              'boardID' : this.boardID,
               'taskID' : this.taskID,
               'comment' : this.comment,
             })))

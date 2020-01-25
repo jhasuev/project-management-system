@@ -41,7 +41,7 @@
       </v-list>
     </v-card>
 
-    <TaskSingleInfo :taskID="editTaskID" v-if="editTaskID"/>
+    <TaskSingleInfo :boardID="boardID" :taskID="editTaskID" v-if="editTaskID"/>
 
   </div>
 </template>

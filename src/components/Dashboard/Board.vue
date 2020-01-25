@@ -46,8 +46,8 @@
     },
     created(){
       this.setTitle();
-      this.loadCards();
-      this.loadTasks();
+      // this.loadCards();
+      // this.loadTasks();
 
       // tasksUpdate
       eventEmitter.$on('tasksUpdate', this.loadTasks);
@@ -70,6 +70,7 @@
           if (response.data.status == 'success') {
             // успешно
             eventEmitter.$emit("change_title", response.data.boardTitle);
+            this.loadCards();
           } else if (response.data.status == 'fail') {
             // ошибка
           }
@@ -86,6 +87,9 @@
           if (response.data.status == 'success') {
             // успешно
             this.cards = response.data.cards;
+            if (this.cards && this.cards.length) {
+              this.loadTasks();
+            }
           } else if (response.data.status == 'fail') {
             // ошибка
           }

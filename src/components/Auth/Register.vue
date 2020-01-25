@@ -85,8 +85,6 @@
 
 <script>
 import {eventEmitter} from '../../main'
-import {SERVER_API} from '../../main'
-import axios from 'axios'
 export default {
   data () {
     return {
@@ -125,36 +123,28 @@ export default {
       // if (this.$refs.form.validate()) {
       if (this.valid()) {
         this.loading = true;
-        axios.defaults.withCredentials = true;
-        axios
-          .get(SERVER_API + '?cmd=register&data=' + JSON.stringify({
+        this.axios_req('register', {
+          data : {
             'login' : this.login.trim(),
             'fullName' : this.fullName.trim(),
             'email' : this.email.trim(),
             'password' : this.password.trim(),
-          }))
-          .then(response => {
-            // eslint-disable-next-line
-            console.log(response.data);
-            this.messages = [];
-            if (response.data.status == 'success') {
-              // успешно
-              // this.$store.commit('setLogin', this.login.trim());
-              // this.$store.commit('setFullName', this.fullName.trim());
-              // this.$store.commit('setEmail', this.email.trim());
-              this.user_authed = true;
-              this.$router.push('/');
+          }
+        }, (response) => {
+          this.messages = [];
+          if (response.data.status == 'success') {
+            // успешно
+            this.user_authed = true;
+            this.$router.push('/');
 
-            } else if (response.data.status == 'fail') {
-              // ошибка
-              this.messages = response.data.messages;
-            }
-          })
-          .catch(error => {
-            // eslint-disable-next-line
-            console.log(error);
-          })
-          .finally(() => (this.loading = false));
+          } else if (response.data.status == 'fail') {
+            // ошибка
+            this.messages = response.data.messages;
+          }
+        }, ()=>{
+          // finally
+          this.loading = false
+        });
       }
     },
     valid () {

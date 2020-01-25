@@ -8,7 +8,7 @@
         sm="12"
       >
         <h1 class="headline">Ваши доски</h1>
-        <BoardSettings :boardID="setting_boardID" v-if="setting_boardID" :colors="colors"/>
+        <BoardSettings :boardID="setting_boardID" v-if="setting_boardID" :colors="colors" @loadBoards="showBoardList()"/>
       </v-col>
     </v-row>
     <v-row
@@ -52,7 +52,7 @@
           <div class="d-flex  align-center  mt-auto">
             <span class="board___date">{{getStringifyDate(board.created_time * 1000)}}</span>
             <v-spacer></v-spacer>
-            <v-btn text :to="'dashboard/b/' + board.id">Перейти</v-btn>
+            <v-btn text :to="'board/' + board.id">Перейти</v-btn>
           </div>
         </div>
       </v-col>

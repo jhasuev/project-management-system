@@ -19,7 +19,7 @@
             
           </v-toolbar>
           <v-card-text>
-            <v-form ref="form" lazy-validation>
+            <v-form ref="form" lazy-validation @submit.prevent="onSubmit">
               <v-text-field
                 prepend-icon="mdi-account"
                 name="login"
@@ -59,10 +59,8 @@
 
 <script>
 import {eventEmitter} from '../../main'
-import {SERVER_API} from '../../main'
-import axios from 'axios'
 export default {
-  props: ['no_change_title'],
+  props: ['use_in_main'],
   data () {
     return {
       login: '',
@@ -86,31 +84,25 @@ export default {
       // if (this.$refs.form.validate()) {
       if (this.valid()) {
         this.loading = true;
-        axios.defaults.withCredentials = true;
-        axios
-          .get(SERVER_API + '?cmd=login&data=' + JSON.stringify({
+        this.axios_req('login', {
+          data : {
             'login' : this.login.trim(),
             'password' : this.password.trim(),
-          }))
-          .then(response => {
-            // eslint-disable-next-line
-            console.log(response.data);
-            this.messages = [];
-            if (response.data.status == 'success') {
-              // успешно
-              // eventEmitter.$emit('user_login');
-              this.user_authed = true;
-              this.$router.push('/dashboard');
-            } else if (response.data.status == 'fail') {
-              // ошибка
-              this.messages = response.data.messages;
-            }
-          })
-          .catch(error => {
-            // eslint-disable-next-line
-            console.log(error);
-          })
-          .finally(() => (this.loading = false));
+          }
+        }, (response) => {
+          this.messages = [];
+          if (response.data.status == 'success') {
+            // успешно
+            this.user_authed = true;
+            this.$router.push('/dashboard');
+          } else if (response.data.status == 'fail') {
+            // ошибка
+            this.messages = response.data.messages;
+          }
+        }, ()=>{
+          // finally
+          this.loading = false
+        });
       }
     },
     valid () {
@@ -120,8 +112,9 @@ export default {
   },
   computed : {},
   created(){
-    this.redirect('/dashboard', true);
-    if (!this.no_change_title) {
+
+    if (!this.use_in_main) {
+      this.redirect('/dashboard', true);
       eventEmitter.$emit("change_title", 'Войти');
     }
   }

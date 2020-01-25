@@ -34,7 +34,7 @@ export default new VueRouter({
 			component : Dashboard,
 		},
 		{
-			path : '/dashboard/b/:id',
+			path : '/board/:id',
 			props: true,
 			component : Board,
 		},

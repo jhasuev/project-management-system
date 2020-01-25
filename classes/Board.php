@@ -2,13 +2,10 @@
 class Board {
 	public $mysqli;
 
-	public function create($board_data){
-		$fields = "`" . implode(array_keys($board_data), "`,`") . "`";
-		$values = "'" . implode(array_values($board_data), "','") . "'";
-
-		$sql = "INSERT INTO `boards` ({$fields}) VALUES ({$values})";
-		$GLOBALS['db']->mysqli->query($sql);
-		return $GLOBALS['db']->mysqli->insert_id;
+	public function hasAccess($boardID){
+		return  ($this->getBoardOwnerID($boardID) == $_SESSION['userID']) ||
+				($this->isParticipant($boardID, $_SESSION['userID'])) ||
+				($this->isBoardPrivate($boardID) == '0');
 	}
 
 	public function getBoardsList($userID){
@@ -42,6 +39,16 @@ class Board {
 			return false;
 		}
 		return $result->fetch_assoc()['title'];
+	}
+
+	public function isBoardPrivate($boardID){
+		$sql = "SELECT `is_private` FROM `boards` WHERE `id` = {$boardID}";
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+		return $result->fetch_assoc()['is_private'];
 	}
 
 	public function getCards($boardID){

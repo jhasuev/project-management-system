@@ -18,7 +18,7 @@
         
         <v-list-item>
           <v-list-item-content>
-            <BoardCommentsForm :taskID="taskID" @loadComments="loadComments()"/>
+            <BoardCommentsForm :boardID="boardID" :taskID="taskID" @loadComments="loadComments()"/>
           </v-list-item-content>
 
         </v-list-item>
@@ -81,7 +81,7 @@
   import BoardCommentsForm from './BoardCommentsForm.vue'
 
   export default {
-    props: ['taskID'],
+    props: ['boardID', 'taskID'],
     data(){
       return {
         loading : false,
@@ -100,6 +100,7 @@
         this.axios_req('loadComments', {
           data : {
             'taskID' : this.taskID,
+            'boardID' : this.boardID,
           }
         }, (response) => {
           // eslint-disable-next-line

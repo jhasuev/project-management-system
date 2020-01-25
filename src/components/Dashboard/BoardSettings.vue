@@ -298,6 +298,7 @@
             if (response.data.status == 'success') {
               // успешно
               fallback_fnc(response.data.new_value);
+              this.$emit('loadBoards');
             } else if (response.data.status == 'fail') {
               // ошибка
               // eslint-disable-next-line

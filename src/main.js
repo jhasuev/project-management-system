@@ -34,25 +34,32 @@ Vue.mixin({
       });
 
       let this_route = this.$router.currentRoute.path;
+      this_route;
 
       axios.get(SERVER_API + '?cmd=' + cmd, {
         params: params,
         withCredentials : true,
       })
       .then((response) => {
-        if(response.data  && response.data.status == 'success') {
-          this.user_authed = true;
-        } else {
-          this.user_authed = false;
-        }
+        this.$root.is_authed = !!response.data.is_authed;
 
-        if(response.data  && response.data.status == 'no_access') {
-          // eslint-disable-next-line
-          // console.log('eslint-disable-next-line');
-          if(this.$router.currentRoute.path == this_route){
-            this.$router.push('/dashboard');
+        if(!this.$root.is_authed) {
+          if(this.$router.currentRoute.path != '/login') {
+            this.$router.push('/login');
           }
         }
+
+        // if(!this.$root.is_authed) {
+        //   this.$router.push('/login');
+        //   return true;
+        // }
+
+        // if(response.data  &&  response.data.status == 'no_access') {
+        //   if(this.$router.currentRoute.path == this_route){
+        //     this.$router.push('/dashboard');
+        //     return true;
+        //   }
+        // }
 
         // eslint-disable-next-line
         console.log(response);
@@ -93,27 +100,28 @@ Vue.mixin({
       let this_route = this.$router.currentRoute.path;
 
       // eslint-disable-next-line
-      console.log('this.redirect()', this.user_authed);
+      console.log('this.redirect()', this.$root.is_authed);
 
-      if(this.user_authed === null){
+      if(this.$root.is_authed === null){
         this.axios_req('checkAuth', {}, (response) => {
-          // eslint-disable-next-line
-          console.log(this.$router.currentRoute.path, this_route);
+          
+          this.$root.is_authed = !!response.data.is_authed;
 
           if(response.data && response.data.status == 'success'){
-            this.user_authed = true;
             if(if_user && this.$router.currentRoute.path == this_route){
               this.$router.push(to);
             }
           } else {
-            this.user_authed = false;
             if(!if_user && this.$router.currentRoute.path == this_route){
               this.$router.push(to);
             }
           }
+
         });
+
       } else {
-        if(this.user_authed){
+
+        if(this.$root.is_authed){
           if(if_user){
             this.$router.push(to);
           }
@@ -122,16 +130,17 @@ Vue.mixin({
             this.$router.push(to);
           }
         }
+
       }
     },
     setAuth(){
-      this.axios_req('checkAuth', {}, (response) => {
+      /*this.axios_req('checkAuth', {}, (response) => {
         if(response.data && response.data.status == 'success'){
-          this.user_authed = true;
+          this.$root.is_authed = true;
         } else {
-          this.user_authed = false;
+          this.$root.is_authed = false;
         }
-      });
+      });*/
     }
   },
   created(){
@@ -145,5 +154,10 @@ new Vue({
   router,
   // store,
   // axios,
+  data() {
+    return {
+      is_authed : null
+    }
+  },
 }).$mount('#app')
 

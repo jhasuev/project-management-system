@@ -20,6 +20,7 @@ export default {
     BoardList
   },
   created(){
+    this.redirect('/login', false);
     eventEmitter.$emit("change_title", 'Все доски');
   }
 }

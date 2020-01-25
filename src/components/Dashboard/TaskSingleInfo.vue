@@ -104,11 +104,11 @@
 
         <v-divider class="my-8"></v-divider>
 
-        <BoardTaskToDoList :taskID="taskID" :checkList="checkList"/>
+        <BoardTaskToDoList :boardID="boardID" :taskID="taskID" :checkList="checkList"/>
 
         <v-divider class="my-8"></v-divider>
 
-        <BoardComments :taskID="taskID"/>
+        <BoardComments :boardID="boardID" :taskID="taskID"/>
       </div>
       
       <div class="main-container" v-show="!is_task_loaded">
@@ -188,7 +188,7 @@
   import BoardTaskToDoList from './BoardTaskToDoList.vue'
   
   export default {
-    props : ['taskID'],
+    props : ['boardID', 'taskID'],
     data () {
       return {
         is_task_loaded : false,
@@ -233,6 +233,7 @@
         this.is_task_loaded = false;
         this.axios_req('getSingleTask', {
           data : {
+            'boardID' : this.boardID,
             'taskID' : id,
           }
         }, (response) => {
@@ -325,6 +326,7 @@
       changeField(fieldName, newVal, fallback_fnc){
         this.axios_req('changeTaskField', {
           data : {
+            'boardID' : this.boardID,
             'taskID' : this.taskID,
             'field' : fieldName,
             'value' : newVal,

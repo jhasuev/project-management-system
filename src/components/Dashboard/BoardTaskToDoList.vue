@@ -129,10 +129,9 @@
   </div>
 </template>
 <script>
-  import {SERVER_API} from '../../main'
-  import axios from 'axios'
   export default {
     props: {
+      boardID : [String, Number],
       taskID : [String, Number],
       checkList : Array,
     },
@@ -177,28 +176,24 @@
       save(){
         this.loading = true;
 
-        axios.defaults.withCredentials = true;
-        axios
-          .get(SERVER_API + '?cmd=saveCheckList&data=' + encodeURIComponent(JSON.stringify({
+        this.axios_req('saveCheckList', {
+          data : {
+            'boardID' : this.boardID,
               'taskID' : this.taskID,
               'checkList' : this.checkList,
-            })))
-          .then(response => {
+          }
+        }, (response) => {
+          if (response.data.status == 'success') {
+            // успешно
+          } else if (response.data.status == 'fail') {
+            // ошибка
             // eslint-disable-next-line
-            console.log(response.data);
-            if (response.data.status == 'success') {
-              // успешно
-            } else if (response.data.status == 'fail') {
-              // ошибка
-              // eslint-disable-next-line
-              console.log(response);
-            }
-          })
-          .catch(error => {
-            // eslint-disable-next-line
-            console.log(error);
-          })
-          .finally(()=>{this.loading = false});
+            console.log(response);
+          }
+        }, ()=>{
+          // finally
+          this.loading = false
+        });
       },
     },
   }

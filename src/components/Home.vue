@@ -1,10 +1,24 @@
 <template>
-  <div></div>
+  <div>
+    <Login :use_in_main="true"/>
+    <div class="text-center pb-3">
+      Еще не зарегистрированы?<br/>
+      <router-link :to="'/register'">Присоединяйтесь!</router-link>
+    </div>
+  </div>
 </template>
 
 <script>
+  import {eventEmitter} from '../main'
+  import Login from './Auth/Login.vue'
   export default {
     created(){
+      eventEmitter.$emit("change_title", 'Главная');
+      this.redirect('/dashboard', true);
+
+      /*this.redirect('/dashboard', true);
+      this.redirect('/login', false);*/
+
       /*this.axios_req('getBoardTitle', {
         data : {
           'boardID' : this.boardID
@@ -15,18 +29,10 @@
       }, ()=>{
         // finally
       });*/
-
-      /*this.axios_req('checkAuth', null, (response) => {
-        if(this.$router.currentRoute.path == '/') {
-          if(response.data.status == 'success') {
-            this.$router.push('/dashboard');
-          } else {
-            this.$router.push('/login');
-          }
-        }
-      }, ()=>{
-        // finally
-      });*/
+      
     },
+    components : {
+      Login,
+    }
   }
 </script>
