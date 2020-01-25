@@ -8,6 +8,15 @@ class Board {
 				($this->isBoardPrivate($boardID) == '0');
 	}
 
+	public function create($board_data){
+		$fields = "`" . implode(array_keys($board_data), "`,`") . "`";
+		$values = "'" . implode(array_values($board_data), "','") . "'";
+
+		$sql = "INSERT INTO `boards` ({$fields}) VALUES ({$values})";
+		$GLOBALS['db']->mysqli->query($sql);
+		return $GLOBALS['db']->mysqli->insert_id;
+	}
+
 	public function getBoardsList($userID){
 		$sql = "SELECT `boards`.`id`, `title`, `is_private`, `color`, `created_time`, (IF(`boards`.`userID` = {$userID}, 1, 0)) as `is_owner` 
 				FROM `boards`
