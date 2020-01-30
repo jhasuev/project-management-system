@@ -140,6 +140,10 @@ switch ($_GET['cmd']) {
 					'created_time' => time(),
 				));
 				$result = array('status' => 'success', 'BoardID' => $boardID);
+
+				// $Board->addAction($boardID, 'board_created', $actionID);
+				$Board->addAction($boardID, 'board_created', $boardID);
+
 			} else {
 				$result = array('status' => 'fail');
 			}
@@ -178,6 +182,7 @@ switch ($_GET['cmd']) {
 						'boardID' => $boardID
 					));
 					$result = array('status' => 'success', 'cardID' => $cardID);
+					$Board->addAction($boardID, 'card_created', $cardID);
 				} else {
 					$result = array('status' => 'no_access');
 				}
@@ -232,6 +237,7 @@ switch ($_GET['cmd']) {
 						'title' => addslashes($title),
 					));
 					$result = array('status' => 'success', 'taskID' => $taskID);
+					$Board->addAction($boardID, 'task_created', $taskID);
 				} else {
 					$result = array('status' => 'no_access');
 				}
@@ -341,6 +347,36 @@ switch ($_GET['cmd']) {
 
 		break;
 
+	case 'sortCards':
+		// сортируем карточки
+		if (isset($_SESSION['userID'])) {
+			$boardID = $data['boardID'] * 1;
+			$new_positions = $data['new_positions'];
+
+			if ($boardID) {
+				$Board = new Board();
+				
+				if ($Board->hasAccess($boardID)) {
+					if ($Board->sortCards($new_positions)) {
+						$cards = $Board->getCards($boardID);
+						$result = array('status' => 'success', 'cards' => $cards);
+					} else {
+						$result = array('status' => 'sorting_errors');
+					}
+				} else {
+					$result = array('status' => 'no_access');
+				}
+
+			} else {
+				$result = array('status' => 'fail');
+			}
+			
+		} else {
+			$result = array('status' => 'fail');
+		}
+
+		break;
+
 	case 'changeTaskField':
 		// меняем значение в поле у задачи 
 
@@ -357,6 +393,38 @@ switch ($_GET['cmd']) {
 					
 					$new_value = $Board->changeTaskField($taskID, $field, $value);
 					$result = array('status' => 'success', 'new_value' => $new_value);
+
+					$Board->addAction($boardID, 'task_field_' . $field . '_changed', $taskID);
+				} else {
+					$result = array('status' => 'no_access');
+				}
+			} else {
+				$result = array('status' => 'fail');
+			}
+			
+		} else {
+			$result = array('status' => 'fail');
+		}
+
+		break;
+
+	case 'changeCardField':
+		// меняем значение в поле у задачи 
+
+		if (isset($_SESSION['userID'])) {
+			$cardID = $data['cardID'] * 1;
+			$boardID = $data['boardID'] * 1;
+
+			$field = trim($data['field']);
+			$value = addslashes(trim($data['value']));
+
+			if ($cardID) {
+				$Board = new Board();
+				if ($Board->hasAccess($boardID)) {
+					
+					$new_value = $Board->changeCardField($cardID, $field, $value);
+					$result = array('status' => 'success', 'new_value' => $new_value);
+					$Board->addAction($boardID, 'card_field_' . $field . '_changed', $cardID);
 				} else {
 					$result = array('status' => 'no_access');
 				}
@@ -386,6 +454,7 @@ switch ($_GET['cmd']) {
 					
 					$new_value = $Board->changeBoardField($boardID, $field, $value);
 					$result = array('status' => 'success', 'new_value' => $new_value);
+					$Board->addAction($boardID, 'board_field_' . $field . '_changed', $boardID);
 				} else {
 					$result = array('status' => 'no_access');
 				}
@@ -413,6 +482,7 @@ switch ($_GET['cmd']) {
 					
 					$new_value = $Board->changeTaskField($taskID, 'checkList', $checkList);
 					$result = array('status' => 'success', 'new_value' => $new_value);
+					$Board->addAction($boardID, 'task_checkList_changed', $taskID);
 				} else {
 					$result = array('status' => 'no_access');
 				}
@@ -440,6 +510,7 @@ switch ($_GET['cmd']) {
 					
 					if ($Board->addComment($taskID, $comment)) {
 						$result = array('status' => 'success');
+						$Board->addAction($boardID, 'task_comment_added', $taskID);
 					} else {
 						$result = array('status' => 'fail');
 					}
@@ -503,6 +574,7 @@ switch ($_GET['cmd']) {
 							} else {
 								$adding_result = $Board->addParticipant($boardID, $new_userID);
 								$result = array('status' => 'success', 'result' => $adding_result);
+								$Board->addAction($boardID, 'board_participant_added', $new_userID);
 							}
 						} else {
 							$result = array('status' => 'login_not_exists');
@@ -561,6 +633,57 @@ switch ($_GET['cmd']) {
 		}
 
 		break;
+
+	case 'getActions':
+		// получаем действия
+		if (isset($_SESSION['userID'])) {
+			$boardID = $data['boardID'] * 1;
+
+			if ($boardID) {
+				$Board = new Board();
+				
+				if ($Board->hasAccess($boardID)) {
+					// все действия
+					$actions = $Board->getActions($boardID);
+
+					// все участники доски
+					$Auth = new Auth();
+					$participants = $Board->loadParticipants($boardID);
+
+					if (!is_array($participants)) {
+						$participants = array();
+					}
+
+					$boardOwnerID = $Board->getBoardOwnerID($boardID);
+					$owner_data = $Auth->getProfileData($boardOwnerID, array('id', 'login', 'fullName'));
+
+					array_unshift($participants, $owner_data);
+
+					// все карты данной доски
+					$cards = $Board->getCards($boardID);
+
+					// все задачки всех карт данной доски
+					$tasks = $Board->getTasks($boardID);
+
+					$result = array(
+						'status' => 'success',
+						'actions' => $actions,
+						'users' => $participants,
+						'cards' => $cards,
+						'tasks' => $tasks,
+					);
+				} else {
+					$result = array('status' => 'no_access');
+				}
+
+			} else {
+				$result = array('status' => 'fail');
+			}
+			
+		} else {
+			$result = array('status' => 'fail');
+		}
+		break;
 }
 
 if (isset($_SESSION['userID'])) {
@@ -573,120 +696,3 @@ echo json_encode($result);
 
 
 exit();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function filter($str){
-	$str = htmlspecialchars((stripslashes(trim($str))), ENT_QUOTES);
-	$str = str_replace('/','',$str);
-	$str = str_replace('.','',$str);
-	$str = str_replace('`','',$str);
-	return $str;
-}
-
-$result = // array('login' => '11111111','password' => '11111111','email' => '11111111', );
-
-// $Auth = new Auth();
-// echo $Auth->isLoginExist('admin');
-// echo $Auth->isEmailExist('admin@site.domain');
-// echo $Auth->addUser(array(
-// 	'login' => 'jamal_123',
-// 	'password' => '123456qwertyu',
-// 	'email' => 'jamal_123@mail.ru',
-// 	'fullName' => 'Jamal Hasuev',
-// ));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-exit();
-header("Access-Control-Allow-Origin: http://localhost:8080");
-
-if ($_GET['data']) {
-	$data = json_decode($_GET['data']);
-}
-
-switch ($_GET['cmd']) {
-	case 'register':
-		
-		break;
-	default:
-		echo "API works but no command matched !";
-		break;
-}

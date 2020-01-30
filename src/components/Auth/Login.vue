@@ -35,6 +35,7 @@
                 type="password"
                 :rules="passwordRules"
                 v-model="password"
+                @keydown.enter="onSubmit"
               ></v-text-field>
               <div class="message" v-if="messages.length">
                 <div class="message__item" v-for="(msg, i) in messages" :key="i">{{msg}}</div>

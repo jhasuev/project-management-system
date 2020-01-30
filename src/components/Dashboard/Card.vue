@@ -1,8 +1,37 @@
 <template>
   <div>
-    <v-tooltip top>
+    <div v-if="is_title_editing" class="mb-3">
+      <v-text-field
+        name="title"
+        label="Название карточки"
+        required
+        hide-details
+        filled
+        v-model="card.title"
+        :loading="title_loading"
+        :disabled="title_loading"
+        @keydown.enter="editTitleSave()"
+      ></v-text-field>
+
+      <div class="d-flex">
+        <v-spacer></v-spacer>
+        <v-btn icon small @click="editTitleSave()" class="ml-1">
+          <v-icon small>mdi-content-save</v-icon>
+          <!-- сохранить -->
+        </v-btn>
+      </div>
+    </div>
+    <v-tooltip top v-else>
       <template v-slot:activator="{ on }">
-        <div class="card-title" v-on="on">{{card.title}}</div>
+        <!-- <div class="card-title" v-on="on">{{card.title}}</div> -->
+        <div class="d-flex align-center mb-2">
+          
+          <span class="card-title-edit mr-2" @click="is_title_editing = !is_title_editing">
+            <v-icon small>mdi-pencil</v-icon>
+          </span>
+
+          <span class="card-title  flex-grow-1" v-on="on">{{card.title}}</span>
+        </div>
       </template>
       <span>{{card.title}}</span>
     </v-tooltip>
@@ -37,6 +66,7 @@
             </v-list-item>
             <v-divider v-if="(filteredTasks.length - 1) != i"></v-divider>
           </div>
+
         </v-list-item-group>
       </v-list>
     </v-card>
@@ -57,6 +87,8 @@
     data () {
       return {
         editTaskID : 0,
+        is_title_editing : false,
+        title_loading : false,
       }
     },
     created(){
@@ -72,6 +104,32 @@
         this.editTaskID = id;
         // eslint-disable-next-line
         console.log('------------------', id);
+      },
+      editTitleSave(){
+        if (this.card.title && this.card.title.trim()) {
+          this.title_loading = true;
+          this.axios_req('changeCardField', {
+            data : {
+              'boardID' : this.boardID,
+              'cardID' : this.card.id,
+              'field' : 'title',
+              'value' : this.card.title,
+            }
+          }, (response) => {
+              if (response.data.status == 'success') {
+                // успешно
+                this.is_title_editing = false;
+                this.card.title = response.data.new_value.title;
+              } else if (response.data.status == 'fail') {
+                // ошибка
+                // eslint-disable-next-line
+                console.log(response);
+              }
+          }, ()=>{
+            // finally
+            this.title_loading = false
+          });
+        }
       }
     },
     computed: {
@@ -96,9 +154,13 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 11px;
+    /*margin-bottom: 11px;*/
     font-size: 18px;
 
+    cursor: pointer;
+  }
+
+  .card-title-edit {
     cursor: pointer;
   }
 

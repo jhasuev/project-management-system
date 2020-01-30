@@ -61,7 +61,7 @@ class Board {
 	}
 
 	public function getCards($boardID){
-		$sql = "SELECT `id`,`title` FROM `boardcards` WHERE `boardID` = {$boardID}";
+		$sql = "SELECT `id`,`title`,`order_pos` as `order` FROM `boardcards` WHERE `boardID` = {$boardID}";
 
 		$result = $GLOBALS['db']->mysqli->query($sql);
 		if ($result->num_rows === 0) {
@@ -77,6 +77,19 @@ class Board {
 		return $cards;
 	}
 
+	public function sortCards($new_positions){
+		for ($i = 0, $count = count($new_positions); $i < $count; $i++) { 
+			$cardID = $new_positions[$i]['cardID'];
+			$order = $new_positions[$i]['order'];
+			$sql = "UPDATE `boardcards` SET `order_pos` = {$order} WHERE `id` = {$cardID};";
+			$result = $GLOBALS['db']->mysqli->query($sql);
+			if (!$result) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public function createCard($board_data){
 		$fields = "`" . implode(array_keys($board_data), "`,`") . "`";
 		$values = "'" . implode(array_values($board_data), "','") . "'";
@@ -87,7 +100,7 @@ class Board {
 	}
 
 	public function getTasks($boardID){
-		$sql = "SELECT `id`,`cardID`,`title`,`deadline`, (IF(`checkList` != '', 1, '')) as `checkList`
+		$sql = "SELECT `id`,`cardID`,`title`,`deadline`, (IF(`checkList` != '', 1, '')) as `checkList`,`order_pos` as `order`
 						FROM `boardtasks` 
 						WHERE `boardID` = {$boardID} 
 						ORDER BY `id` DESC";
@@ -159,6 +172,25 @@ class Board {
 			$sql = "SELECT `{$field}`
 						FROM `boardtasks` 
 						WHERE `id` = {$taskID}";
+			$result = $GLOBALS['db']->mysqli->query($sql);
+			if ($result->num_rows === 0) {
+				return false;
+			}
+
+			return $result->fetch_assoc();
+		}
+		return false;
+	}
+
+	public function changeCardField($cardID, $field, $value){
+		$sql = "UPDATE `boardcards`
+					SET `{$field}` = '{$value}'
+					WHERE `id` = {$cardID};";
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result) {
+			$sql = "SELECT `{$field}`
+						FROM `boardcards` 
+						WHERE `id` = {$cardID}";
 			$result = $GLOBALS['db']->mysqli->query($sql);
 			if ($result->num_rows === 0) {
 				return false;
@@ -270,5 +302,39 @@ class Board {
 		}
 
 		return $cards;
+	}
+
+	public function addAction($boardID, $type, $actionID){
+		$time = time();
+		$sql = "INSERT INTO `boardactions`
+					(`boardID`, `userID`, `actionType`, `actionID`, `time`)
+				VALUES
+					({$boardID}, {$_SESSION['userID']}, '{$type}', {$actionID}, {$time})";
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result) {
+			return true;
+		}
+		return false;
+	}
+
+	public function getActions($boardID){
+		$sql = "SELECT `boardID`,`userID`,`actionType`,`actionID`,`time`
+				FROM `boardactions`
+				WHERE `boardID` = {$boardID}
+				ORDER BY `id` DESC LIMIT 0, 100
+				";
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+
+		$actions = array();
+
+		while($row = $result->fetch_assoc()){
+			array_push($actions, $row);
+		}
+
+		return $actions;
 	}
 }

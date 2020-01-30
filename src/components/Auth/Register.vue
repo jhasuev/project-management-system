@@ -60,6 +60,7 @@
                 type="password"
                 :rules="passwordConfirmRules"
                 v-model="passwordConfirm"
+                @keydown.enter="onSubmit"
               ></v-text-field>
 
               <div class="message" v-if="messages.length">

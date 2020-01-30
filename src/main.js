@@ -44,7 +44,7 @@ Vue.mixin({
         this.$root.is_authed = !!response.data.is_authed;
 
         if(!this.$root.is_authed) {
-          if(this.$router.currentRoute.path != '/login') {
+          if(this.$router.currentRoute.path != '/login' && this.$router.currentRoute.path != '/register') {
             this.$router.push('/login');
           }
         }
@@ -62,7 +62,7 @@ Vue.mixin({
         // }
 
         // eslint-disable-next-line
-        console.log(response);
+        console.log(cmd, response);
 
         then(response);
       })
