@@ -15,35 +15,45 @@
             <div v-if="actionTypes[action.actionType]">
               <div v-if="actionTypes[action.actionType].type == 'task'">
                 <!-- задача -->
-                <div v-if="action.actionType == 'task_created'">
-                  <b>{{actionTypes[action.actionType].text}}</b> => <b>{{tasks[action.actionID].title}}</b>
-                </div>
-                <div v-else>
-                  <b>{{actionTypes[action.actionType].text}}</b>
-                  в задаче: 
-                  <b>{{tasks[action.actionID].title}}</b>
+                <div v-if="tasks[action.actionID]">
+                  <div v-if="action.actionType == 'task_created'">
+                    <b>{{actionTypes[action.actionType].text}}</b> => <b>{{tasks[action.actionID].title}}</b>
+                  </div>
+                  <div v-else-if="action.actionType == 'task_removed'">
+                    <b>{{actionTypes[action.actionType].text}}</b> => <b>{{tasks[action.actionID].title}}</b>
+                  </div>
+                  <div v-else>
+                    <b>{{actionTypes[action.actionType].text}}</b>
+                    в задаче: 
+                    <b>{{tasks[action.actionID].title}}</b>
+                  </div>
                 </div>
               </div>
               <div v-else-if="actionTypes[action.actionType].type == 'card'">
                 <!-- карточка -->
-                <div v-if="action.actionType == 'card_created'">
-                  <b>{{actionTypes[action.actionType].text}}</b> => <b>{{cards[action.actionID].title}}</b>
-                </div>
-                <div v-else>
-                  <b>{{actionTypes[action.actionType].text}}</b> в карточке: <b>{{cards[action.actionID].title}}</b>
+                <div v-if="cards[action.actionID]">
+                  <div v-if="action.actionType == 'card_created'">
+                    <b>{{actionTypes[action.actionType].text}}</b> => <b>{{cards[action.actionID].title}}</b>
+                  </div>
+                  <div v-else-if="action.actionType == 'card_removed'">
+                    <b>{{actionTypes[action.actionType].text}}</b> => <b>{{cards[action.actionID].title}}</b>
+                  </div>
+                  <div v-else>
+                    <b>{{actionTypes[action.actionType].text}}</b> в карточке: <b>{{cards[action.actionID].title}}</b>
+                  </div>
                 </div>
               </div>
               <div v-else-if="actionTypes[action.actionType].type == 'users'">
                 <!-- пользователи -->
-                <div v-if="action.actionType == 'board_participant_added'">
-                  {{actionTypes[action.actionType].text}}: <b>{{users[action.actionID].fullName}}</b> в доску
+                <div v-if="users[action.actionID]">
+                  <div v-if="action.actionType == 'board_participant_added'">
+                    {{actionTypes[action.actionType].text}}: <b>{{users[action.actionID].fullName}}</b> в доску
+                  </div>
                 </div>
               </div>
               <div v-else-if="actionTypes[action.actionType].type == 'board'">
                 <!-- доски -->
-                  {{actionTypes[action.actionType].text}}
-                <div v-if="action.actionType == 'board_participant_added'">
-                </div>
+                {{actionTypes[action.actionType].text}}
               </div>
             </div>
           </v-card-text>
@@ -59,7 +69,7 @@
     props: ['boardID'],
     data () {
       return {
-        show_actions : !false,
+        show_actions : false,
         actionTypes : {
           task_created : {
             text : 'Создал(а) задачу',
@@ -85,6 +95,14 @@
             text : 'Изменил(а) название',
             type : 'task'
           },
+          task_field_done_changed : {
+            text : 'Изменил(а) поле готово/не готово',
+            type : 'task'
+          },
+          task_removed : {
+            text : 'Удалил(а) задачу',
+            type : 'task'
+          },
 
 
           board_field_is_private_changed : {
@@ -106,7 +124,11 @@
 
 
           card_created : {
-            text : 'Создал(а) карточка',
+            text : 'Создал(а) карточку',
+            type : 'card'
+          },
+          card_removed : {
+            text : 'Удалил(а) карточку',
             type : 'card'
           },
 
@@ -135,41 +157,49 @@
     },
     methods: {
       loadActions(){
+        let this_route = this.$router.currentRoute.path;
         this.axios_req('getActions', {
           data : {
-            'boardID' : this.boardID
+            'boardID' : this.boardID,
+            'lastActionID' : (this.actions[0])?this.actions[0].id:''
           }
         }, (response) => {
 
           if (response.data.status == 'success') {
-            this.actions = [];
-            this.users = {};
-            this.cards = {};
-            this.tasks = {};
+            if (response.data.actions) {
+              this.actions = [];
+              this.users = {};
+              this.cards = {};
+              this.tasks = {};
 
-            this.actions = response.data.actions;
+              this.actions = response.data.actions;
 
-            response.data.users.forEach(user => {
-              this.users[user.id] = user;
-            });
+              if (response.data.users) {
+                response.data.users.forEach(user => {
+                  this.users[user.id] = user;
+                });
+              }
 
-            response.data.cards.forEach(card => {
-              this.cards[card.id] = card;
-            });
+              if (response.data.cards) {
+                response.data.cards.forEach(card => {
+                  this.cards[card.id] = card;
+                });
+              }
 
-            response.data.tasks.forEach(task => {
-              this.tasks[task.id] = task;
-            });
-            // eslint-disable-next-line
-            // console.log(this.tasks);
-
-
+              if (response.data.tasks) {
+                response.data.tasks.forEach(task => {
+                  this.tasks[task.id] = task;
+                });
+              }
+            }
           }
 
         }, ()=>{
           // обновляем список действий каждые 10 секунд
           this.timerID = setTimeout(()=>{
-            this.loadActions();
+           if(this.$router.currentRoute.path == this_route){
+              this.loadActions();
+            }
           }, 1000 * 10);
         });
       },
@@ -186,11 +216,12 @@
     width: 400px;
     max-width: 100%;
     position: absolute;
+    z-index: 1;
     bottom: 0;
     right: 0;
     top: 0;
 
-    /*background-color: #f00;*/
+    background-color: #FAFAFA;
     transition: .2s;
 
     transform: translateX(100%);

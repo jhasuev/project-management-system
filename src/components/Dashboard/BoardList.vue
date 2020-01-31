@@ -35,6 +35,32 @@
       >
         <div class="board  elevation-12" :style="{'background-color' : colors[board.color].bgcolor, 'color' : colors[board.color].textcolor }">
           <div class="setting-btn-wrapper" v-if="board.is_owner*1">
+            
+            <!-- <v-btn small icon @click="removeBoard(board.id); removePopup = !removePopup"> -->
+            <v-btn small icon @click="removePopup = !removePopup">
+              <v-icon small>mdi-delete</v-icon>
+            </v-btn>
+            <v-overlay :value="removePopup">
+              <v-btn
+                small
+                color="red"
+                class="mx-1"
+                @click="removeBoard(board.id, i);"
+                :loading="removing_loading"
+              >
+                Удалить доску
+              </v-btn>
+              <v-btn
+                small
+                color="success"
+                class="mx-1"
+                @click="removePopup = !removePopup"
+                :disabled="removing_loading"
+              >
+                Оставить
+              </v-btn>
+            </v-overlay>
+
             <v-btn small icon @click="openSettings(board.id)">
               <v-icon small>mdi-settings</v-icon>
             </v-btn>
@@ -57,6 +83,11 @@
         </div>
       </v-col>
     </v-row>
+    <!-- <v-row>
+      <v-col>
+        <pre>{{boards}}</pre>
+      </v-col>
+    </v-row> -->
   </v-container>
 </template>
 
@@ -104,13 +135,13 @@ export default {
         ],
       boards : [],
       setting_boardID : null,
+      removePopup : false,
+      removing_loading : false,
     }
   },
   methods : {
     showBoardList(){
-      this.axios_req('getBoardList', {
-        'boardID' : 2
-      }, (response) => {
+      this.axios_req('getBoardList', {}, (response) => {
         if (response.data.status == 'success') {
             // успешно
             this.boards = response.data.boards;
@@ -126,6 +157,27 @@ export default {
     },
     openSettings(boardID){
       this.setting_boardID = boardID;
+    },
+    removeBoard(boardID, localID){
+      this.removing_loading = true;
+      this.axios_req('removeBoard', {
+        data : {
+          'boardID' : boardID
+        }
+      }, (response) => {
+        if (response.data.status == 'success') {
+            // успешно
+            this.boards.splice(localID, 1);
+          } else if (response.data.status == 'fail') {
+            // ошибка
+            // eslint-disable-next-line
+            console.log(response);
+          }
+      }, ()=>{
+        // finally
+        this.removing_loading = false;
+        this.removePopup = false;
+      });
     }
   },
   created(){

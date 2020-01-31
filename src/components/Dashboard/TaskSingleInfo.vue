@@ -100,6 +100,19 @@
           </v-date-picker>
         </v-dialog>
 
+        <v-switch
+          v-model="done"
+          hide-details
+          :label="(done)?'Задача выполнена!':'Задача еще не выполнена.'"
+
+          color="primary"
+
+          @change="editDoneSave()"
+          
+          :loading="done_loading"
+          :disabled="done_loading"
+        ></v-switch>
+
         <!-- <pre>{{deadline}}</pre> -->
 
         <v-divider class="my-8"></v-divider>
@@ -207,7 +220,8 @@
         deadline_loading: false,
 
         checkList : [],
-        done : null,
+        done : false,
+        done_loading : false,
         
         tmp : {},
       }
@@ -215,7 +229,7 @@
     watch: {
       'dialog' : () => {
         // eslint-disable-next-line
-        console.log('watch -> dialog');
+        // console.log('watch -> dialog');
         eventEmitter.$emit('close');
       },
     },
@@ -247,7 +261,7 @@
             if (response.data.task.checkList) {
               this.checkList = JSON.parse(response.data.task.checkList);
             }
-            this.done = response.data.task.done;
+            this.done = !!(response.data.task.done * 1);
 
             this.is_task_loaded = true;
           } else if (response.data.status == 'fail') {
@@ -323,6 +337,13 @@
         });
       },
 
+      editDoneSave(){
+        this.done_loading = true;
+        this.changeField('done', this.done * 1, (new_value) => {
+          this.done = !!(new_value.done * 1);
+        });
+      },
+
       changeField(fieldName, newVal, fallback_fnc){
         this.axios_req('changeTaskField', {
           data : {
@@ -342,6 +363,8 @@
             }
         }, ()=>{
           // finally
+          eventEmitter.$emit('tasksUpdate');
+
           switch(fieldName){
             case 'title':
               this.title_loading = false
@@ -352,9 +375,13 @@
             case 'deadline':
               this.deadline_loading = false
               break;
+            case 'done':
+              this.done_loading = false;
+              break;
             default:
               this.loading = false
           }
+
         });
       },
     },

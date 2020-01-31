@@ -54,8 +54,17 @@
             <v-list-item
               @click="openTask(task.id)"
             >
+              <v-list-item-icon class="mr-1" v-if="task.done == '1'">
+                <v-icon small color="success">mdi-check-outline</v-icon>
+              </v-list-item-icon>
+
               <v-list-item-content>
-                <v-list-item-title>{{task.title}}</v-list-item-title>
+                <v-list-item-title class="pr-3">
+                  {{task.title}}
+                  <v-btn icon class="remove-task ml-2" @click.stop="removePopup = !removePopup; tmp.taskID = task.id; tmp.localTaskID = i">
+                    <v-icon small >mdi-delete</v-icon>
+                  </v-btn>
+                </v-list-item-title>
                 <v-list-item-subtitle class="text--primary" v-if="task.checkList || (task.deadline * 1)">
                   <div class="pt-2 d-flex align-center">
                     <v-icon class="mr-auto" v-if="task.checkList">mdi-format-list-checkbox</v-icon>
@@ -65,11 +74,33 @@
               </v-list-item-content>
             </v-list-item>
             <v-divider v-if="(filteredTasks.length - 1) != i"></v-divider>
+            <!-- <pre>{{task}}</pre> -->
           </div>
 
         </v-list-item-group>
       </v-list>
     </v-card>
+
+    <v-overlay :value="removePopup">
+      <v-btn
+        small
+        color="red"
+        class="mx-1"
+        @click="removeTask(tmp.taskID, tmp.localTaskID);"
+        :loading="removing_loading"
+      >
+        Удалить доску
+      </v-btn>
+      <v-btn
+        small
+        color="success"
+        class="mx-1"
+        @click="removePopup = !removePopup"
+        :disabled="removing_loading"
+      >
+        Оставить
+      </v-btn>
+    </v-overlay>
 
     <TaskSingleInfo :boardID="boardID" :taskID="editTaskID" v-if="editTaskID"/>
 
@@ -89,13 +120,15 @@
         editTaskID : 0,
         is_title_editing : false,
         title_loading : false,
+
+        removePopup : false,
+        removing_loading : false,
+        tmp : {},
       }
     },
     created(){
       // this.loadTasks();
       eventEmitter.$on("close", ()=>{
-        // eslint-disable-next-line
-        console.log('eventEmitter.$on("close.....');
         this.editTaskID = 0;
       });
     },
@@ -130,6 +163,28 @@
             this.title_loading = false
           });
         }
+      },
+      removeTask(taskID, localID){
+        this.removing_loading = true;
+        this.axios_req('removeTask', {
+          data : {
+            'boardID' : this.boardID,
+            'taskID' : taskID,
+          }
+        }, (response) => {
+          if (response.data.status == 'success') {
+              // успешно
+              this.tasks.splice(localID, 1);
+            } else if (response.data.status == 'fail') {
+              // ошибка
+              // eslint-disable-next-line
+              console.log(response);
+            }
+        }, ()=>{
+          // finally
+          this.removing_loading = false;
+          this.removePopup = false;
+        });
       }
     },
     computed: {
@@ -162,6 +217,14 @@
 
   .card-title-edit {
     cursor: pointer;
+  }
+
+  .remove-task {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
   }
 
 </style>

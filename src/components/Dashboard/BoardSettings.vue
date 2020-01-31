@@ -69,7 +69,7 @@
               :key="i"
             >
               <div class="px-4 py-1">
-                <div>
+                <div :style="{'font-weight' : (i == 0)?'bold':''}">
                   <v-icon small class="mr-2">mdi-account</v-icon>
                   {{participant.fullName}}
                   (<span class="grey--text">@{{participant.login}}</span>)

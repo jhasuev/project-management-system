@@ -47,6 +47,11 @@
             <div class="handle">
               <v-icon small>mdi-swap-horizontal</v-icon>
             </div>
+            
+            <div class="remove-card-wrapper">
+              <v-icon small @click="removePopup = !removePopup; tmp.cardID = card.id; tmp.localCardID = i">mdi-delete</v-icon>
+            </div>
+
             <Card :card="card" :boardID="id" :tasks="tasks"/>
           </div>
         </transition-group>
@@ -57,6 +62,27 @@
         </div>
       </div>
     </div>
+
+    <v-overlay :value="removePopup">
+      <v-btn
+        small
+        color="red"
+        class="mx-1"
+        @click="removeCard(tmp.cardID, tmp.localCardID);"
+        :loading="removing_loading"
+      >
+        Удалить доску
+      </v-btn>
+      <v-btn
+        small
+        color="success"
+        class="mx-1"
+        @click="removePopup = !removePopup"
+        :disabled="removing_loading"
+      >
+        Оставить
+      </v-btn>
+    </v-overlay>
 
     <Actions :boardID="id"/>
 
@@ -91,6 +117,9 @@
         cards : [],
         tasks : [],
         is_sorting : false,
+        removePopup : false,
+        removing_loading : false,
+        tmp : {}
       }
     },
     created(){
@@ -199,6 +228,28 @@
         });
 
       },
+      removeCard(cardID, localID){
+        this.removing_loading = true;
+        this.axios_req('removeCard', {
+          data : {
+            'boardID' : this.id,
+            'cardID' : cardID,
+          }
+        }, (response) => {
+          if (response.data.status == 'success') {
+              // успешно
+              this.cards.splice(localID, 1);
+            } else if (response.data.status == 'fail') {
+              // ошибка
+              // eslint-disable-next-line
+              console.log(response);
+            }
+        }, ()=>{
+          // finally
+          this.removing_loading = false;
+          this.removePopup = false;
+        });
+      }
       
     },
     computed : {
@@ -273,17 +324,24 @@
   border-width: 2px;
   background-color: transparent;
 }
-.handle {
+.handle,
+.remove-card-wrapper {
   position: absolute;
   bottom: 100%;
-  right: 0;
   cursor: pointer;
   margin-bottom: 3px;
   opacity: 0;
   transition: .2s;
 }
+.handle {
+  right: 0;
+}
+.remove-card-wrapper {
+  left: 0;
+}
 
-.cols__item:hover .handle {
+.cols__item:hover .handle,
+.cols__item:hover .remove-card-wrapper {
   opacity: 1;
 }
 

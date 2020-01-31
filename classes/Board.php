@@ -21,7 +21,7 @@ class Board {
 		$sql = "SELECT `boards`.`id`, `title`, `is_private`, `color`, `created_time`, (IF(`boards`.`userID` = {$userID}, 1, 0)) as `is_owner` 
 				FROM `boards`
 				LEFT JOIN `boardparticipants` ON boardparticipants.boardID = boards.id
-				WHERE `boards`.`userID` = {$userID} OR `boardparticipants`.`userID` = {$userID}
+				WHERE (`boards`.`userID` = {$userID} OR `boardparticipants`.`userID` = {$userID}) AND `boards`.`status` = 'active'
 				ORDER BY `boards`.`id` DESC";
 
 		// echo $sql;
@@ -41,7 +41,7 @@ class Board {
 	}
 
 	public function getBoardTitle($boardID){
-		$sql = "SELECT `title` FROM `boards` WHERE `id` = {$boardID}";
+		$sql = "SELECT `title` FROM `boards` WHERE `id` = {$boardID} AND `boards`.`status` = 'active'";
 
 		$result = $GLOBALS['db']->mysqli->query($sql);
 		if ($result->num_rows === 0) {
@@ -51,7 +51,7 @@ class Board {
 	}
 
 	public function isBoardPrivate($boardID){
-		$sql = "SELECT `is_private` FROM `boards` WHERE `id` = {$boardID}";
+		$sql = "SELECT `is_private` FROM `boards` WHERE `id` = {$boardID} AND `boards`.`status` = 'active'";
 
 		$result = $GLOBALS['db']->mysqli->query($sql);
 		if ($result->num_rows === 0) {
@@ -60,8 +60,12 @@ class Board {
 		return $result->fetch_assoc()['is_private'];
 	}
 
-	public function getCards($boardID){
-		$sql = "SELECT `id`,`title`,`order_pos` as `order` FROM `boardcards` WHERE `boardID` = {$boardID}";
+	public function getCards($boardID, $get_all = false){
+		if ($get_all) {
+			$sql = "SELECT `id`,`title`,`order_pos` as `order` FROM `boardcards` WHERE `boardID` = {$boardID}";
+		} else {
+			$sql = "SELECT `id`,`title`,`order_pos` as `order` FROM `boardcards` WHERE `boardID` = {$boardID} AND `status` = 'active'";
+		}
 
 		$result = $GLOBALS['db']->mysqli->query($sql);
 		if ($result->num_rows === 0) {
@@ -91,6 +95,15 @@ class Board {
 	}
 
 	public function createCard($board_data){
+		
+		$sql = "SELECT COUNT(`id`) as `cards_count` FROM `boardcards` WHERE `boardID` = {$board_data['boardID']}";
+		$cards_count = $GLOBALS['db']->mysqli->query($sql);
+		$cards_count = $cards_count->fetch_assoc()['cards_count'];
+
+		// echo $cards_count;
+
+		$board_data['order_pos'] = $cards_count + 1;
+
 		$fields = "`" . implode(array_keys($board_data), "`,`") . "`";
 		$values = "'" . implode(array_values($board_data), "','") . "'";
 
@@ -99,11 +112,18 @@ class Board {
 		return $GLOBALS['db']->mysqli->insert_id;
 	}
 
-	public function getTasks($boardID){
-		$sql = "SELECT `id`,`cardID`,`title`,`deadline`, (IF(`checkList` != '', 1, '')) as `checkList`,`order_pos` as `order`
-						FROM `boardtasks` 
-						WHERE `boardID` = {$boardID} 
-						ORDER BY `id` DESC";
+	public function getTasks($boardID, $get_all = false){
+		if ($get_all) {
+			$sql = "SELECT `id`,`cardID`,`title`,`deadline`, `done`, (IF(`checkList` != '', 1, '')) as `checkList`,`order_pos` as `order`
+							FROM `boardtasks` 
+							WHERE `boardID` = {$boardID}
+							ORDER BY `id` DESC";
+		} else {
+			$sql = "SELECT `id`,`cardID`,`title`,`deadline`, `done`, (IF(`checkList` != '', 1, '')) as `checkList`,`order_pos` as `order`
+							FROM `boardtasks` 
+							WHERE `boardID` = {$boardID} AND `status` = 'active'
+							ORDER BY `id` DESC";
+		}
 
 		$result = $GLOBALS['db']->mysqli->query($sql);
 		if ($result->num_rows === 0) {
@@ -134,8 +154,8 @@ class Board {
 	}
 
 	public function getSingleBoard($boardID){
-		$sql = "SELECT `id`, `userID`, `title`, `is_private`, `color`, `created_time`, (IF(`userID` != $_SESSION[userID], 0, 1)) as `is_owner` FROM `boards` WHERE `id` = {$boardID}";
-		// $sql = "SELECT `id`, `userID`, `title`, `is_private`, `color`, `created_time` FROM `boards` WHERE `id` = {$boardID}";
+		$sql = "SELECT `id`, `userID`, `title`, `is_private`, `color`, `created_time`, (IF(`userID` != $_SESSION[userID], 0, 1)) as `is_owner` FROM `boards` WHERE `id` = {$boardID} AND `boards`.`status` = 'active'";
+		// $sql = "SELECT `id`, `userID`, `title`, `is_private`, `color`, `created_time` FROM `boards` WHERE `id` = {$boardID} AND `boards`.`status` = 'active'";
 
 		$result = $GLOBALS['db']->mysqli->query($sql);
 		if ($result->num_rows === 0) {
@@ -145,7 +165,7 @@ class Board {
 	}
 
 	public function getBoardOwnerID($boardID){
-		$sql = "SELECT `userID` FROM `boards` WHERE `id` = {$boardID}";
+		$sql = "SELECT `userID` FROM `boards` WHERE `id` = {$boardID} AND `boards`.`status` = 'active'";
 
 		$result = $GLOBALS['db']->mysqli->query($sql);
 		if ($result->num_rows === 0) {
@@ -204,12 +224,12 @@ class Board {
 	public function changeBoardField($boardID, $field, $value){
 		$sql = "UPDATE `boards`
 					SET `{$field}` = '{$value}'
-					WHERE `id` = {$boardID};";
+					WHERE `id` = {$boardID} AND `boards`.`status` = 'active';";
 		$result = $GLOBALS['db']->mysqli->query($sql);
 		if ($result) {
 			$sql = "SELECT `{$field}`
 						FROM `boards` 
-						WHERE `id` = {$boardID}";
+						WHERE `id` = {$boardID} AND `boards`.`status` = 'active'";
 			$result = $GLOBALS['db']->mysqli->query($sql);
 			if ($result->num_rows === 0) {
 				return false;
@@ -318,7 +338,7 @@ class Board {
 	}
 
 	public function getActions($boardID){
-		$sql = "SELECT `boardID`,`userID`,`actionType`,`actionID`,`time`
+		$sql = "SELECT `id`,`boardID`,`userID`,`actionType`,`actionID`,`time`
 				FROM `boardactions`
 				WHERE `boardID` = {$boardID}
 				ORDER BY `id` DESC LIMIT 0, 100
@@ -336,5 +356,42 @@ class Board {
 		}
 
 		return $actions;
+	}
+
+	public function getLastActionID($boardID){
+		$sql = "SELECT `id`
+				FROM `boardactions`
+				WHERE `boardID` = {$boardID}
+				ORDER BY `id` DESC LIMIT 1";
+
+		$result = $GLOBALS['db']->mysqli->query($sql);
+		if ($result->num_rows === 0) {
+			return false;
+		}
+		return $result->fetch_assoc()['id'];
+	}
+
+	public function removeBoard($boardID){
+		$sql = "UPDATE `boards`
+					SET `status` = 'removed'
+					WHERE `id` = {$boardID}";
+		
+		return !!$GLOBALS['db']->mysqli->query($sql);
+	}
+
+	public function removeCard($cardID){
+		$sql = "UPDATE `boardcards`
+					SET `status` = 'removed'
+					WHERE `id` = {$cardID}";
+		
+		return !!$GLOBALS['db']->mysqli->query($sql);
+	}
+
+	public function removeTask($taskID){
+		$sql = "UPDATE `boardtasks`
+					SET `status` = 'removed'
+					WHERE `id` = {$taskID}";
+		
+		return !!$GLOBALS['db']->mysqli->query($sql);
 	}
 }

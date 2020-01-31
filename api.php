@@ -196,6 +196,88 @@ switch ($_GET['cmd']) {
 
 		break;
 
+	case 'removeBoard':
+		// создаем карточку в доске
+		if (isset($_SESSION['userID'])) {
+			$boardID = $data['boardID'] * 1;
+
+			if ($boardID) {
+				$Board = new Board();
+				if ($Board->hasAccess($boardID)) {
+					if ($Board->removeBoard($boardID)) {
+						$result = array('status' => 'success');
+					} else {
+						$result = array('status' => 'fail');
+					}
+				} else {
+					$result = array('status' => 'no_access');
+				}
+			} else {
+				$result = array('status' => 'fail');
+			}
+			
+		} else {
+			$result = array('status' => 'fail');
+		}
+
+		break;
+
+	case 'removeCard':
+		// создаем карточку в доске
+		if (isset($_SESSION['userID'])) {
+			$boardID = $data['boardID'] * 1;
+			$cardID = $data['cardID'] * 1;
+
+			if ($boardID) {
+				$Board = new Board();
+				if ($Board->hasAccess($boardID)) {
+					if ($Board->removeCard($cardID)) {
+						$result = array('status' => 'success');
+						$Board->addAction($boardID, 'card_removed', $cardID);
+					} else {
+						$result = array('status' => 'fail');
+					}
+				} else {
+					$result = array('status' => 'no_access');
+				}
+			} else {
+				$result = array('status' => 'fail');
+			}
+			
+		} else {
+			$result = array('status' => 'fail');
+		}
+
+		break;
+
+	case 'removeTask':
+		// создаем карточку в доске
+		if (isset($_SESSION['userID'])) {
+			$boardID = $data['boardID'] * 1;
+			$taskID = $data['taskID'] * 1;
+
+			if ($boardID) {
+				$Board = new Board();
+				if ($Board->hasAccess($boardID)) {
+					if ($Board->removeTask($taskID)) {
+						$result = array('status' => 'success');
+						$Board->addAction($boardID, 'task_removed', $taskID);
+					} else {
+						$result = array('status' => 'fail');
+					}
+				} else {
+					$result = array('status' => 'no_access');
+				}
+			} else {
+				$result = array('status' => 'fail');
+			}
+			
+		} else {
+			$result = array('status' => 'fail');
+		}
+
+		break;
+
 	case 'getBoardTitle':
 		// получаем название доски
 		if (isset($_SESSION['userID'])) {
@@ -638,40 +720,52 @@ switch ($_GET['cmd']) {
 		// получаем действия
 		if (isset($_SESSION['userID'])) {
 			$boardID = $data['boardID'] * 1;
+			$lastActionID = '';
+			if (isset($data['lastActionID'])) {
+				$lastActionID = $data['lastActionID'];
+			}
 
 			if ($boardID) {
 				$Board = new Board();
 				
 				if ($Board->hasAccess($boardID)) {
-					// все действия
-					$actions = $Board->getActions($boardID);
 
-					// все участники доски
-					$Auth = new Auth();
-					$participants = $Board->loadParticipants($boardID);
+					if ($lastActionID && $Board->getLastActionID($boardID) == $lastActionID) {
+						$result = array('status' => 'success');
+					} else {
+						// все действия
+						$actions = $Board->getActions($boardID);
 
-					if (!is_array($participants)) {
-						$participants = array();
+						// все участники доски
+						$Auth = new Auth();
+						$participants = $Board->loadParticipants($boardID);
+
+						if (!is_array($participants)) {
+							$participants = array();
+						}
+
+						$boardOwnerID = $Board->getBoardOwnerID($boardID);
+						$owner_data = $Auth->getProfileData($boardOwnerID, array('id', 'login', 'fullName'));
+
+						array_unshift($participants, $owner_data);
+
+						// все карты данной доски
+						$cards = $Board->getCards($boardID, true);
+
+						// все задачки всех карт данной доски
+						$tasks = $Board->getTasks($boardID, true);
+
+						$result = array(
+							'status' => 'success',
+							'actions' => $actions,
+							'users' => $participants,
+							'cards' => $cards,
+							'tasks' => $tasks,
+							'lastActionID' => $lastActionID,
+						);
 					}
 
-					$boardOwnerID = $Board->getBoardOwnerID($boardID);
-					$owner_data = $Auth->getProfileData($boardOwnerID, array('id', 'login', 'fullName'));
 
-					array_unshift($participants, $owner_data);
-
-					// все карты данной доски
-					$cards = $Board->getCards($boardID);
-
-					// все задачки всех карт данной доски
-					$tasks = $Board->getTasks($boardID);
-
-					$result = array(
-						'status' => 'success',
-						'actions' => $actions,
-						'users' => $participants,
-						'cards' => $cards,
-						'tasks' => $tasks,
-					);
 				} else {
 					$result = array('status' => 'no_access');
 				}
