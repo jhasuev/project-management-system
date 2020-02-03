@@ -9,6 +9,46 @@
       >
         <h1 class="headline">Ваши доски</h1>
         <BoardSettings :boardID="setting_boardID" v-if="setting_boardID" :colors="colors" @loadBoards="showBoardList()"/>
+        <v-dialog
+          v-model="removePopup"
+          width="500"
+        >
+          <v-card>
+            <v-card-title
+              class="headline grey lighten-2 justify-center"
+              primary-title
+            >
+              Удалить доску?
+            </v-card-title>
+
+            <v-card-text class="pt-3" v-if="tmp.boardID">
+              Доска <b>"{{boards[tmp.localBoardID].title}}"</b> будет удалена навсегда.
+            </v-card-text>
+
+            <v-divider></v-divider>
+
+            <v-card-actions class="justify-center">
+              <v-btn
+                small
+                color="warning"
+                class="mx-1"
+                @click="removeBoard(tmp.boardID, tmp.localBoardID);"
+                :loading="removing_loading"
+              >
+                Да, удалить
+              </v-btn>
+              <v-btn
+                small
+                color="transparent"
+                class="mx-1"
+                @click="removePopup = !removePopup"
+                :disabled="removing_loading"
+              >
+                Нет, оставить
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-col>
     </v-row>
     <v-row
@@ -36,30 +76,9 @@
         <div class="board  elevation-12" :style="{'background-color' : colors[board.color].bgcolor, 'color' : colors[board.color].textcolor }">
           <div class="setting-btn-wrapper" v-if="board.is_owner*1">
             
-            <!-- <v-btn small icon @click="removeBoard(board.id); removePopup = !removePopup"> -->
-            <v-btn small icon @click="removePopup = !removePopup">
+            <v-btn small icon @click="removePopup = !removePopup; tmp.boardID = board.id; tmp.localBoardID = i">
               <v-icon small>mdi-delete</v-icon>
             </v-btn>
-            <v-overlay :value="removePopup">
-              <v-btn
-                small
-                color="red"
-                class="mx-1"
-                @click="removeBoard(board.id, i);"
-                :loading="removing_loading"
-              >
-                Удалить доску
-              </v-btn>
-              <v-btn
-                small
-                color="success"
-                class="mx-1"
-                @click="removePopup = !removePopup"
-                :disabled="removing_loading"
-              >
-                Оставить
-              </v-btn>
-            </v-overlay>
 
             <v-btn small icon @click="openSettings(board.id)">
               <v-icon small>mdi-settings</v-icon>
@@ -91,7 +110,7 @@
         xl="2"
 
         v-for="num in 10"
-        :key="num"
+        :key="num + '__v-skeleton-loader'"
 
         v-show="!boards"
       >
@@ -103,11 +122,6 @@
         ></v-skeleton-loader>
       </v-col>
     </v-row>
-    <!-- <v-row>
-      <v-col>
-        <pre>{{boards}}</pre>
-      </v-col>
-    </v-row> -->
   </v-container>
 </template>
 
@@ -157,6 +171,8 @@ export default {
       setting_boardID : null,
       removePopup : false,
       removing_loading : false,
+
+      tmp : {}
     }
   },
   methods : {
