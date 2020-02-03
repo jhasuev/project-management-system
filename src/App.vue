@@ -52,8 +52,8 @@
     >
       <v-spacer />
       <span>
-        $root.is_authed: {{$root.is_authed}}
-        <br>
+        <!-- $root.is_authed: {{$root.is_authed}}
+        <br> -->
         &copy; 2019-{{new Date().getFullYear()}}
       </span>
       <v-spacer />

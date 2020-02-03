@@ -82,6 +82,26 @@
           </div>
         </div>
       </v-col>
+
+      <v-col
+        cols="12"
+        sm="6"
+        md="4"
+        lg="3"
+        xl="2"
+
+        v-for="num in 10"
+        :key="num"
+
+        v-show="!boards"
+      >
+        <v-skeleton-loader
+          class="mx-auto"
+          height="220"
+          max-height="220"
+          type="image"
+        ></v-skeleton-loader>
+      </v-col>
     </v-row>
     <!-- <v-row>
       <v-col>
@@ -133,7 +153,7 @@ export default {
             'textcolor' : '#000',
           },
         ],
-      boards : [],
+      boards : null,
       setting_boardID : null,
       removePopup : false,
       removing_loading : false,

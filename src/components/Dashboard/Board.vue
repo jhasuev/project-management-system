@@ -1,110 +1,93 @@
 <!-- https://github.com/SortableJS/Vue.Draggable -->
 <template>
-  <div>
-    <!-- <div class="pr-4 pt-4 text-right">
-      <v-btn small icon>
-        <v-icon small>mdi-settings</v-icon>
-      </v-btn>
-    </div> -->
-
+  <div class="main">
+    <v-card :loading="is_sorting || page_loading" style="height: 4px; overflow: hidden; margin-bottom: -4px;" class="elevation-0"></v-card>
+    
     <div
-      class="cols overflow-x-auto grab-bing"
-      v-dragscroll:nochilddrag
-      @dragscrollstart="blurInputs()"
-      @click.self="blurInputs()"
-      v-if="false"
+      v-if="cards.length"
+      class="overflow-auto  fit-on-parent"
     >
-      <div class="cols__item"
-        @click.self="blurInputs()"
-        v-for="(card,i) in cards" :key="i"
-      >
-        <Card :card="card" :boardID="id" :tasks="tasks"/>
-      </div>
-
-      <div class="cols__item  cols__item--creating"
-        @click.self="blurInputs()"
-      >
-        <CardCreateForm :boardID="id" @cardsUpdate="loadCards();"/>
-      </div>
-    </div>
-
-    <v-card :loading="is_sorting" style="height: 4px; overflow: hidden; margin-bottom: -4px;" class="elevation-0"></v-card>
-    <div class="cols-wrapper  overflow-x-auto">
       <draggable
         @change="cardsSorted"
         v-model="cards"
         :class="{'is-sorting' : is_sorting}"
         handle=".handle"
-        v-if="cards.length"
+        class="cols"
       >
-        <transition-group
-          class="cols"
+        <div class="cols__item"
+          v-for="(card,i) in getSorteredCards"
+          :key="i"
+          :draggable="true"
         >
-          <div class="cols__item"
-            v-for="(card,i) in getSorteredCards"
-            :key="i"
-          >
-            <div class="handle">
-              <v-icon small>mdi-swap-horizontal</v-icon>
-            </div>
-            
-            <div class="remove-card-wrapper">
-              <v-icon small @click="removePopup = !removePopup; tmp.cardID = card.id; tmp.localCardID = i">mdi-delete</v-icon>
-            </div>
-
-            <Card :card="card" :boardID="id" :tasks="tasks"/>
+          <div class="handle">
+            <v-icon small>mdi-swap-horizontal</v-icon>
           </div>
-        </transition-group>
-      </draggable>
-      <div class="cols">
+          
+          <div class="remove-card-wrapper">
+            <v-icon small @click="removePopup = !removePopup; tmp.cardID = card.id; tmp.localCardID = i">mdi-delete</v-icon>
+          </div>
+
+          <Card :card="card" :boardID="id" :tasks="tasks"/>
+        </div>
         <div class="cols__item  cols__item--creating">
           <CardCreateForm :boardID="id" @cardsUpdate="loadCards();"/>
         </div>
+      </draggable>
+    </div>
+    <div class="cols" v-else>
+      <div class="cols__item  cols__item--creating">
+        <CardCreateForm :boardID="id" @cardsUpdate="loadCards();"/>
       </div>
     </div>
-
-    <v-overlay :value="removePopup">
-      <v-btn
-        small
-        color="red"
-        class="mx-1"
-        @click="removeCard(tmp.cardID, tmp.localCardID);"
-        :loading="removing_loading"
-      >
-        Удалить доску
-      </v-btn>
-      <v-btn
-        small
-        color="success"
-        class="mx-1"
-        @click="removePopup = !removePopup"
-        :disabled="removing_loading"
-      >
-        Оставить
-      </v-btn>
-    </v-overlay>
+    
 
     <Actions :boardID="id"/>
 
-    <!-- <pre 
-      :style="{
-        'position' : 'fixed',
-        'z-index' : '999999999',
-        'background-color' : 'rgba(255,255,255,.9)',
-        'top' : '50%',
-        'overflow' : 'auto',
-        'left' : '16px',
-        'right' : '16px',
-        'bottom' : '16px',
-        'padding' : '10px',
-        'border' : '5px solid #999',
-      }"
-      >{{tasks}}</pre> -->
+    <v-dialog
+      v-model="removePopup"
+      width="500"
+    >
+      <v-card>
+        <v-card-title
+          class="headline grey lighten-2 justify-center"
+          primary-title
+        >
+          Удалить карточку?
+        </v-card-title>
+
+        <v-card-text class="pt-3" v-if="typeof tmp.localCardID == 'number'">
+          Карточка <b>"{{cards[tmp.localCardID].title}}"</b> будет удалена навсегда.
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions class="justify-center">
+          <v-btn
+            small
+            color="warning"
+            class="mx-1"
+            @click="removeCard(tmp.cardID, tmp.localCardID);"
+            :loading="removing_loading"
+          >
+            Да, удалить
+          </v-btn>
+          <v-btn
+            small
+            color="transparent"
+            class="mx-1"
+            @click="removePopup = !removePopup"
+            :disabled="removing_loading"
+          >
+            Нет, оставить
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </div>
 </template>
 <script>
   import {eventEmitter} from '../../main'
-  import { dragscroll } from 'vue-dragscroll' // vue-dragscroll | https://www.npmjs.com/package/vue-dragscroll
   import CardCreateForm from './CardCreateForm.vue'
   import Card from './Card.vue'
   import Actions from './Actions.vue'
@@ -117,6 +100,7 @@
         cards : [],
         tasks : [],
         is_sorting : false,
+        page_loading : true,
         removePopup : false,
         removing_loading : false,
         tmp : {}
@@ -191,6 +175,7 @@
           }
         }, ()=>{
           // finally
+          this.page_loading = false;
         });
       },
 
@@ -261,23 +246,33 @@
         return [];
       }
     },
-    directives: {
-      dragscroll
-    },
     components: {
       CardCreateForm,
       Card,
       Actions,
       draggable,
-    }
+    },
+
   }
 </script>
 <style>
 
-.cols-wrapper {
+.main {
+  height: 100%;
+}
+
+.fit-on-parent {
+  height: 100%;
+  width: 100%;
+
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.cols {
   display: flex;
   align-items: flex-start;
-  min-height: 100%;
 }
 
 .cols {
@@ -287,7 +282,7 @@
   padding-top: 32px;
   /*margin: 0 16px;*/
 }
-.cols-wrapper:after {
+.cols:after {
   content: "";
   width: 16px;
   max-width: 16px;
@@ -347,6 +342,8 @@
 
 /*******************************/
 .grab-bing {
+  overflow: auto;
+
   cursor : -webkit-grab;
   cursor : -moz-grab;
   cursor : -o-grab;

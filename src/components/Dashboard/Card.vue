@@ -54,12 +54,10 @@
             <v-list-item
               @click="openTask(task.id)"
             >
-              <v-list-item-icon class="mr-1" v-if="task.done == '1'">
-                <v-icon small color="success">mdi-check-outline</v-icon>
-              </v-list-item-icon>
 
               <v-list-item-content>
                 <v-list-item-title class="pr-3">
+                  <v-icon small color="success" class="mr-2" v-if="task.done == '1'">mdi-check-outline</v-icon>
                   {{task.title}}
                   <v-btn icon class="remove-task ml-2" @click.stop="removePopup = !removePopup; tmp.taskID = task.id; tmp.localTaskID = i">
                     <v-icon small >mdi-delete</v-icon>
@@ -68,7 +66,7 @@
                 <v-list-item-subtitle class="text--primary" v-if="task.checkList || (task.deadline * 1)">
                   <div class="pt-2 d-flex align-center">
                     <v-icon class="mr-auto" v-if="task.checkList">mdi-format-list-checkbox</v-icon>
-                    <v-icon class="ml-auto" v-if="(task.deadline * 1)">mdi-calendar-today</v-icon>
+                    <v-icon class="ml-auto" v-if="(task.deadline * 1)" :color="getDeadlineState(task.deadline)">mdi-calendar-today</v-icon>
                   </div>
                 </v-list-item-subtitle>
               </v-list-item-content>
@@ -81,26 +79,46 @@
       </v-list>
     </v-card>
 
-    <v-overlay :value="removePopup">
-      <v-btn
-        small
-        color="red"
-        class="mx-1"
-        @click="removeTask(tmp.taskID, tmp.localTaskID);"
-        :loading="removing_loading"
-      >
-        Удалить доску
-      </v-btn>
-      <v-btn
-        small
-        color="success"
-        class="mx-1"
-        @click="removePopup = !removePopup"
-        :disabled="removing_loading"
-      >
-        Оставить
-      </v-btn>
-    </v-overlay>
+    <v-dialog
+      v-model="removePopup"
+      width="500"
+    >
+      <v-card>
+        <v-card-title
+          class="headline grey lighten-2 justify-center"
+          primary-title
+        >
+          Удалить задачу?
+        </v-card-title>
+
+        <v-card-text class="pt-3" v-if="typeof tmp.localTaskID == 'number'">
+          Задача <b>"{{tasks[tmp.localTaskID].title}}"</b> будет удалена навсегда.
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions class="justify-center">
+          <v-btn
+            small
+            color="warning"
+            class="mx-1"
+            @click="removeTask(tmp.taskID, tmp.localTaskID);"
+            :loading="removing_loading"
+          >
+            Да, удалить
+          </v-btn>
+          <v-btn
+            small
+            color="transparent"
+            class="mx-1"
+            @click="removePopup = !removePopup"
+            :disabled="removing_loading"
+          >
+            Нет, оставить
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <TaskSingleInfo :boardID="boardID" :taskID="editTaskID" v-if="editTaskID"/>
 
@@ -185,7 +203,7 @@
           this.removing_loading = false;
           this.removePopup = false;
         });
-      }
+      },
     },
     computed: {
       filteredTasks(){
@@ -221,10 +239,8 @@
 
   .remove-task {
     position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    margin: auto;
+    right: 5px;
+    top: 5px;
   }
 
 </style>

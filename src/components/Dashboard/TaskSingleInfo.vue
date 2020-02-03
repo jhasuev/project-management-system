@@ -87,13 +87,19 @@
               filled
               v-on="on"
 
+
               @click:clear="onClearDeadline"
 
               :loading="deadline_loading"
               :disabled="deadline_loading"
             ></v-text-field>
           </template>
-          <v-date-picker locale="ru" v-model="deadline" scrollable>
+          <v-date-picker
+            locale="ru"
+            v-model="deadline"
+            scrollable
+            :color="getDeadlineState(new Date(deadline).getTime() / 1000)"
+          >
             <v-spacer></v-spacer>
             <v-btn text color="primary" @click="deadline_modal = false">Вернуться</v-btn>
             <v-btn text color="primary" @click="editDeadlineSave()">Выбрать</v-btn>
@@ -105,7 +111,7 @@
           hide-details
           :label="(done)?'Задача выполнена!':'Задача еще не выполнена.'"
 
-          color="primary"
+          color="success"
 
           @change="editDoneSave()"
           

@@ -16,9 +16,6 @@
       eventEmitter.$emit("change_title", 'Главная');
       this.redirect('/dashboard', true);
 
-      /*this.redirect('/dashboard', true);
-      this.redirect('/login', false);*/
-
       /*this.axios_req('getBoardTitle', {
         data : {
           'boardID' : this.boardID

@@ -3,13 +3,9 @@ import App from './App.vue'
 import vuetify from './plugins/vuetify';
 import VueRouter from 'vue-router'
 import router from './routes'
-import Vuex from 'vuex';
-// import store from './store/';
 import axios from 'axios'
 
-
 Vue.use(VueRouter)
-Vue.use(Vuex)
 
 Vue.config.productionTip = false
 
@@ -133,14 +129,29 @@ Vue.mixin({
 
       }
     },
-    setAuth(){
-      /*this.axios_req('checkAuth', {}, (response) => {
-        if(response.data && response.data.status == 'success'){
-          this.$root.is_authed = true;
-        } else {
-          this.$root.is_authed = false;
-        }
-      });*/
+    getDeadlineState(ts){
+      ts = ts * 1;
+      if (!ts) {
+        return '';
+      }
+      ts *= 1000;
+      let day_ts = 60*60*24 * 1000;
+
+      let now_ts = new Date().getTime();
+
+      let res = '';
+
+      if (ts < now_ts + (day_ts * 3)) {
+        res =  'orange';
+      }
+      if (this.getStringifyDate(ts, 'dd.mm.yyyy') == this.getStringifyDate(now_ts, 'dd.mm.yyyy')) {
+        res =  'orange';
+      }
+      if (ts < now_ts) {
+        res =  'red';
+      }
+
+      return res;
     }
   },
   created(){
@@ -152,8 +163,6 @@ new Vue({
   render: h => h(App),
   vuetify,
   router,
-  // store,
-  // axios,
   data() {
     return {
       is_authed : null
