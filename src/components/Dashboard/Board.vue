@@ -143,6 +143,7 @@
         });
       },
       loadCards(){
+        this.page_loading = true;
         this.axios_req('getCards', {
           data : {
             'boardID' : this.id,
@@ -153,6 +154,8 @@
             this.cards = response.data.cards;
             if (this.cards && this.cards.length) {
               this.loadTasks();
+            } else {
+              this.page_loading = false;
             }
           } else if (response.data.status == 'fail') {
             // ошибка
@@ -162,6 +165,7 @@
         });
       },
       loadTasks(){
+        this.page_loading = true;
         this.axios_req('getTasks', {
           data : {
             'boardID' : this.id,
